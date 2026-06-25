@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from database import db
 from models import Task, Note
 import ai_parser
+from logger import logger
 
 # Create routes blueprint
 routes_bp = Blueprint('routes', __name__)
@@ -15,6 +16,8 @@ def capture():
         if not text:
             return jsonify({"error": "Text is required"}), 400
             
+        logger.info(f"Capture endpoint called with input: '{text}'")
+        
         # Parse natural language text using Gemini/fallback
         parsed_data = ai_parser.parse_natural_language(text)
         tasks_to_create = parsed_data.get('tasks', [])
@@ -33,6 +36,7 @@ def capture():
                 title=title,
                 description=task_data.get('description', ''),
                 category=task_data.get('category', 'Other'),
+                priority=task_data.get('priority', 'Medium'),
                 tags=tags_str,
                 due_date=task_data.get('due_date', ''),
                 due_time=task_data.get('due_time', ''),
@@ -43,13 +47,21 @@ def capture():
             
         db.session.commit()
         
+        for t in created_tasks:
+            logger.info(f"Database insertion: Saved task '{t.title}' with ID {t.id} (Category: {t.category}, Priority: {t.priority})")
+            
         return jsonify({
             "tasks": [t.to_dict() for t in created_tasks],
             "count": len(created_tasks)
         }), 201
         
+    except ai_parser.GeminiError as e:
+        db.session.rollback()
+        logger.error(f"Gemini API error during capture: {e}")
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Unexpected error in capture: {e}")
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 @routes_bp.route('/task', methods=['POST'])
@@ -61,7 +73,10 @@ def create_task():
         if not title:
             return jsonify({"error": "Title is required"}), 400
             
+        logger.info(f"Manual task creation called with title: '{title}'")
+        
         category = data.get('category', 'Other')
+        priority = data.get('priority', 'Medium')
         description = data.get('description', '')
         due_date = data.get('due_date', '')
         due_time = data.get('due_time', '')
@@ -77,13 +92,19 @@ def create_task():
             
         # Auto-generate tags if empty
         if not tags_str.strip():
-            gen_tags = ai_parser.generate_tags(title)
-            tags_str = ",".join(gen_tags)
+            try:
+                gen_tags = ai_parser.generate_tags(title)
+                tags_str = ",".join(gen_tags)
+            except Exception as e:
+                logger.warning(f"Failed to generate tags for '{title}': {e}. Falling back to heuristics.")
+                gen_tags = ai_parser.fallback_generate_tags(title)
+                tags_str = ",".join(gen_tags)
             
         task = Task(
             title=title,
             description=description,
             category=category,
+            priority=priority,
             tags=tags_str,
             due_date=due_date,
             due_time=due_time,
@@ -92,10 +113,13 @@ def create_task():
         db.session.add(task)
         db.session.commit()
         
+        logger.info(f"Database insertion: Saved manual task '{task.title}' with ID {task.id}")
+        
         return jsonify(task.to_dict()), 201
         
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Unexpected error in create_task: {e}")
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 @routes_bp.route('/tasks', methods=['GET'])
@@ -129,6 +153,7 @@ def get_tasks():
         }), 200
         
     except Exception as e:
+        logger.error(f"Unexpected error in get_tasks: {e}")
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 @routes_bp.route('/task/<int:task_id>', methods=['GET'])
@@ -139,6 +164,7 @@ def get_task(task_id):
             return jsonify({"error": "Task not found"}), 404
         return jsonify(task.to_dict()), 200
     except Exception as e:
+        logger.error(f"Unexpected error in get_task: {e}")
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 @routes_bp.route('/task/<int:task_id>', methods=['PUT'])
@@ -160,6 +186,8 @@ def update_task(task_id):
             task.description = data.get('description')
         if 'category' in data:
             task.category = data.get('category')
+        if 'priority' in data:
+            task.priority = data.get('priority')
         if 'due_date' in data:
             task.due_date = data.get('due_date')
         if 'due_time' in data:
@@ -175,10 +203,12 @@ def update_task(task_id):
                 task.tags = str(tags_input)
                 
         db.session.commit()
+        logger.info(f"Database update: Updated task with ID {task.id}")
         return jsonify(task.to_dict()), 200
         
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Unexpected error in update_task: {e}")
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 @routes_bp.route('/task/<int:task_id>', methods=['DELETE'])
@@ -190,10 +220,12 @@ def delete_task(task_id):
             
         db.session.delete(task)
         db.session.commit()
+        logger.info(f"Database deletion: Deleted task with ID {task_id}")
         return jsonify({"message": "Task deleted successfully"}), 200
         
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Unexpected error in delete_task: {e}")
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 @routes_bp.route('/note', methods=['POST'])
@@ -205,10 +237,17 @@ def create_note():
         if not content:
             return jsonify({"error": "Content is required"}), 400
             
+        logger.info(f"Note creation called with content prefix: '{content[:30]}...'")
+        
         # Extract title/topic from the first line for tag generation
         title_summary = content.split('\n')[0][:50]
-        gen_tags = ai_parser.generate_tags(title_summary)
-        tags_str = ",".join(gen_tags)
+        try:
+            gen_tags = ai_parser.generate_tags(title_summary)
+            tags_str = ",".join(gen_tags)
+        except Exception as e:
+            logger.warning(f"Failed to generate tags for note: {e}")
+            gen_tags = ai_parser.fallback_generate_tags(title_summary)
+            tags_str = ",".join(gen_tags)
         
         note = Note(
             content=content,
@@ -216,11 +255,13 @@ def create_note():
         )
         db.session.add(note)
         db.session.commit()
+        logger.info(f"Database insertion: Saved note with ID {note.id}")
         
         return jsonify(note.to_dict()), 201
         
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Unexpected error in create_note: {e}")
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 @routes_bp.route('/notes', methods=['GET'])
@@ -232,6 +273,7 @@ def get_notes():
             "total": len(notes)
         }), 200
     except Exception as e:
+        logger.error(f"Unexpected error in get_notes: {e}")
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 @routes_bp.route('/note/<int:note_id>', methods=['DELETE'])
@@ -243,10 +285,12 @@ def delete_note(note_id):
             
         db.session.delete(note)
         db.session.commit()
+        logger.info(f"Database deletion: Deleted note with ID {note_id}")
         return jsonify({"message": "Note deleted successfully"}), 200
         
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Unexpected error in delete_note: {e}")
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 @routes_bp.route('/summary', methods=['GET'])
@@ -268,6 +312,7 @@ def get_summary():
             }
         }), 200
     except Exception as e:
+        logger.error(f"Unexpected error in get_summary: {e}")
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 @routes_bp.route('/productivity', methods=['GET'])
@@ -300,4 +345,5 @@ def get_productivity():
         }), 200
         
     except Exception as e:
+        logger.error(f"Unexpected error in get_productivity: {e}")
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500

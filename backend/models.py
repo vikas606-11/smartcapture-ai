@@ -8,6 +8,7 @@ class Task(db.Model):
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
     category = db.Column(db.String(50), nullable=True, default='Other') # Work/Study/Personal/Shopping/Health/Other
+    priority = db.Column(db.String(50), nullable=True, default='Medium')
     tags = db.Column(db.Text, nullable=True) # comma-separated
     due_date = db.Column(db.String(50), nullable=True)
     due_time = db.Column(db.String(50), nullable=True)
@@ -25,6 +26,7 @@ class Task(db.Model):
             'title': self.title,
             'description': self.description or '',
             'category': self.category or 'Other',
+            'priority': self.priority or 'Medium',
             'tags': tag_list,
             'due_date': self.due_date or '',
             'due_time': self.due_time or '',
