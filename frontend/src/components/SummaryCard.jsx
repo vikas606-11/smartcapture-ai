@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FiRefreshCw, FiCpu } from 'react-icons/fi';
+import { RefreshCw, Sparkles } from 'lucide-react';
 import { apiService } from '../services/api';
 import LoadingSpinner from './LoadingSpinner';
 
@@ -27,11 +27,11 @@ export const SummaryCard = ({ refreshTrigger }) => {
 
   if (loading && !data) {
     return (
-      <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
-        <div className="bg-gradient-to-r from-brand-600 to-indigo-600 px-5.5 py-3.5 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-            <FiCpu className="w-4.5 h-4.5" />
-            AI Coach Insights
+      <div className="bg-[#171717] border border-[#2B2B2B] rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-[#101010] px-5.5 py-3.5 border-b border-[#2B2B2B] flex items-center justify-between">
+          <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <Sparkles className="w-4.5 h-4.5 text-[#DC2626]" />
+            <span>AI Coach Insights</span>
           </h3>
         </div>
         <div className="p-6 flex justify-center items-center min-h-[140px]">
@@ -45,20 +45,21 @@ export const SummaryCard = ({ refreshTrigger }) => {
   const stats = data?.stats || { pending: 0, completed: 0, total: 0 };
 
   return (
-    <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
-      {/* Gradient Header */}
-      <div className="bg-gradient-to-r from-brand-500 via-brand-600 to-indigo-650 px-5.5 py-3.5 flex items-center justify-between">
-        <h3 className="text-sm font-bold text-white flex items-center gap-1.8">
-          <FiCpu className="w-4.5 h-4.5 animate-pulse" />
-          AI Coach Insights
+    <div className="bg-[#171717] border border-[#2B2B2B] rounded-2xl shadow-lg overflow-hidden">
+      
+      {/* Header */}
+      <div className="bg-[#101010] px-5.5 py-3.5 border-b border-[#2B2B2B] flex items-center justify-between">
+        <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <Sparkles className="w-4.5 h-4.5 text-[#DC2626] animate-pulse" />
+          <span>AI Coach Insights</span>
         </h3>
         <button
           onClick={fetchSummary}
           disabled={loading}
-          className="p-1.5 hover:bg-white/10 rounded-lg text-brand-100 hover:text-white transition-all disabled:opacity-50 focus:outline-none"
+          className="p-1.5 hover:bg-[#2B2B2B] rounded-lg text-[#808080] hover:text-white transition-colors disabled:opacity-50 focus:outline-none"
           title="Regenerate Insights"
         >
-          <FiRefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
         </button>
       </div>
 
@@ -66,22 +67,22 @@ export const SummaryCard = ({ refreshTrigger }) => {
       <div className="p-5.5 space-y-4">
         {error ? (
           <div className="text-center py-4">
-            <p className="text-xs text-rose-500 font-medium mb-3.5">{error}</p>
+            <p className="text-xs text-[#DC2626] font-medium mb-3.5">{error}</p>
             <button
               onClick={fetchSummary}
-              className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold rounded-lg transition-colors"
+              className="px-3.5 py-1.5 border border-[#2B2B2B] hover:border-white bg-[#0F0F0F] text-xs font-bold rounded-xl transition-all"
             >
               Retry
             </button>
           </div>
         ) : (
           <>
-            <p className="text-sm leading-relaxed text-slate-655 dark:text-slate-305 italic">
+            <p className="text-xs leading-relaxed text-[#B3B3B3] italic bg-[#0F0F0F] p-4 rounded-xl border border-[#2B2B2B]/40">
               "{summary}"
             </p>
             
-            {/* stats overview footer */}
-            <div className="flex justify-between items-center text-[10px] pt-3.5 border-t border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-widest">
+            {/* Stats list footer */}
+            <div className="flex justify-between items-center text-[10px] pt-3.5 border-t border-[#2B2B2B] text-[#808080] font-extrabold uppercase tracking-wider">
               <span>{stats.pending} Pending</span>
               <span>&bull;</span>
               <span>{stats.completed} Completed</span>

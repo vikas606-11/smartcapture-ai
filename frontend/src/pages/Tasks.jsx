@@ -1,23 +1,28 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FiPlus, FiMinus, FiCheckSquare, FiAlertCircle } from 'react-icons/fi';
+import { Plus, Minus, Check, Calendar, Clock, Edit2, Trash2, MoreHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, Sparkles, Filter } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { apiService } from '../services/api';
 import SearchBar from '../components/SearchBar';
 import TaskForm from '../components/TaskForm';
-import TaskList from '../components/TaskList';
 import LoadingSpinner from '../components/LoadingSpinner';
+import toast from 'react-hot-toast';
 
 export const Tasks = ({ showNotification }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState('All'); // 'All' | 'pending' | 'completed'
-  const [sortBy, setSortBy] = useState('created_at'); // 'created_at' | 'due_date' | 'category'
+  const [sortBy, setSortBy] = useState('created_at'); // 'created_at' | 'due_date' | 'category' | 'priority'
   const [filters, setFilters] = useState({ search: '', category: 'All' });
+  const [activeMenuId, setActiveMenuId] = useState(null);
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
-      // Build query arguments matching backend routes.py
       const apiFilters = {
         search: filters.search,
         category: filters.category,
@@ -26,61 +31,81 @@ export const Tasks = ({ showNotification }) => {
       
       const response = await apiService.getAllTasks(apiFilters);
       setTasks(response.tasks || []);
+      setCurrentPage(1); // Reset to page 1 on filter/tab update
     } catch (err) {
-      showNotification(err.message || 'Failed to fetch tasks.', 'error');
+      toast.error(err.message || 'Failed to fetch tasks.');
     } finally {
       setLoading(false);
     }
-  }, [filters, activeTab, showNotification]);
+  }, [filters, activeTab]);
 
   useEffect(() => {
     fetchTasks();
+    
+    // Listen for global refresh events (triggered by Quick Capture modal)
+    const handleRefresh = () => {
+      fetchTasks();
+    };
+
+    window.addEventListener('refresh-task-list', handleRefresh);
+    return () => window.removeEventListener('refresh-task-list', handleRefresh);
   }, [fetchTasks]);
+
+  // Sync with search parameter from URL if exists
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const searchParam = params.get('search');
+    if (searchParam) {
+      setFilters(prev => ({ ...prev, search: searchParam }));
+      // Clear URL params to avoid locking search
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   const handleTaskUpdate = async (id, updatedFields) => {
     try {
       await apiService.updateTask(id, updatedFields);
-      showNotification('Task updated successfully.', 'success');
+      toast.success('Task updated successfully.');
       fetchTasks();
     } catch (err) {
-      showNotification(err.message, 'error');
+      toast.error(err.message || 'Failed to update task.');
     }
   };
 
   const handleTaskDelete = async (id) => {
     try {
       await apiService.deleteTask(id);
-      showNotification('Task deleted successfully.', 'success');
+      toast.success('Task deleted successfully.');
       fetchTasks();
     } catch (err) {
-      showNotification(err.message, 'error');
+      toast.error(err.message || 'Failed to delete task.');
     }
   };
 
-  // Bulk actions: Mark all complete
   const handleMarkAllComplete = async () => {
     const pendingTasks = tasks.filter((t) => t.status === 'pending');
     if (pendingTasks.length === 0) {
-      showNotification('No pending tasks to complete.', 'info');
+      toast('No pending tasks to complete.', { icon: 'ℹ️' });
       return;
     }
 
     setLoading(true);
     try {
-      // Execute concurrently
       await Promise.all(
         pendingTasks.map((t) => apiService.updateTask(t.id, { status: 'completed' }))
       );
-      showNotification(`Successfully completed ${pendingTasks.length} tasks!`, 'success');
+      toast.success(`Successfully completed ${pendingTasks.length} tasks!`);
       fetchTasks();
     } catch (err) {
-      showNotification(err.message || 'Failed to complete all tasks.', 'error');
+      toast.error(err.message || 'Failed to complete all tasks.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Local sorting rules
+  // Sorting weight definitions
+  const priorityWeight = { High: 3, Medium: 2, Low: 1 };
+
   const getSortedTasks = () => {
     return [...tasks].sort((a, b) => {
       if (sortBy === 'created_at') {
@@ -91,13 +116,14 @@ export const Tasks = ({ showNotification }) => {
         return dateA.localeCompare(dateB);
       } else if (sortBy === 'category') {
         return (a.category || '').localeCompare(b.category || '');
+      } else if (sortBy === 'priority') {
+        return (priorityWeight[b.priority] || 2) - (priorityWeight[a.priority] || 2);
       }
       return 0;
     });
   };
 
   const handleSearchBarChange = (newFilters) => {
-    // If the status dropdown changes in SearchBar, let's sync it with our tabs
     if (newFilters.status && newFilters.status !== 'All') {
       setActiveTab(newFilters.status);
     }
@@ -108,40 +134,68 @@ export const Tasks = ({ showNotification }) => {
   };
 
   const sortedTasksList = getSortedTasks();
+  
+  // Paginate items
+  const totalPages = Math.ceil(sortedTasksList.length / itemsPerPage);
+  const paginatedTasks = sortedTasksList.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const categoryColors = {
+    Work: 'border-blue-900/60 bg-blue-950/20 text-blue-400',
+    Study: 'border-purple-900/60 bg-purple-950/20 text-purple-400',
+    Personal: 'border-amber-950/80 bg-amber-950/10 text-amber-400',
+    Shopping: 'border-pink-900/60 bg-pink-950/20 text-pink-400',
+    Health: 'border-emerald-900/60 bg-emerald-950/20 text-emerald-400',
+    Finance: 'border-yellow-900/60 bg-yellow-950/10 text-yellow-450',
+    Travel: 'border-cyan-900/60 bg-cyan-950/20 text-cyan-400',
+    Other: 'border-[#2B2B2B] bg-[#101010] text-[#B3B3B3]',
+  };
+
+  const priorityColors = {
+    High: 'border-[#DC2626]/40 bg-red-950/20 text-[#EF4444]',
+    Medium: 'border-[#F59E0B]/40 bg-amber-950/20 text-[#F59E0B]',
+    Low: 'border-[#2B2B2B] bg-[#101010] text-[#808080]',
+  };
 
   return (
-    <div className="space-y-6 animate-fade-in p-6">
-      {/* Top Search bar filters */}
+    <div className="space-y-6 p-6 max-w-7xl mx-auto">
+      
+      {/* Filtering Row */}
       <SearchBar onChange={handleSearchBarChange} />
 
-      {/* Action Header bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
-        {/* Sorting options */}
-        <div className="flex items-center space-x-3 text-sm">
-          <span className="text-slate-400 font-bold uppercase tracking-wider text-2xs">Sort By:</span>
+      {/* Action header bar */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-[#2B2B2B]">
+        {/* Sort Options dropdown */}
+        <div className="flex items-center space-x-3 text-xs">
+          <span className="text-[#808080] font-bold uppercase tracking-wider text-4xs flex items-center gap-1">
+            <ArrowUpDown className="w-3.5 h-3.5" />
+            <span>Sort By:</span>
+          </span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-dark-card text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer"
+            className="px-3 py-1.8 rounded-xl border border-[#2B2B2B] bg-[#171717] text-xs font-semibold text-white focus:outline-none focus:border-[#DC2626] cursor-pointer"
           >
             <option value="created_at">Date Created</option>
             <option value="due_date">Due Date</option>
             <option value="category">Category</option>
+            <option value="priority">Priority Weight</option>
           </select>
         </div>
 
-        {/* Tab Selection Row & Button actions */}
+        {/* Status Tab selections */}
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          {/* Tabs */}
-          <div className="flex bg-slate-100 dark:bg-slate-900/60 p-1 rounded-xl text-xs font-bold">
+          <div className="flex bg-[#0F0F0F] p-1 rounded-xl border border-[#2B2B2B] text-xs">
             {['All', 'pending', 'completed'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1.5 rounded-lg capitalize transition-colors duration-200 ${
+                className={`px-3 py-1.5 rounded-lg capitalize transition-colors font-semibold ${
                   activeTab === tab
-                    ? 'bg-white dark:bg-dark-card text-brand-655 dark:text-brand-400 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                    ? 'bg-[#171717] text-white border border-[#2B2B2B]'
+                    : 'text-[#808080] hover:text-white'
                 }`}
               >
                 {tab === 'pending' ? 'Pending' : tab === 'completed' ? 'Completed' : 'All'}
@@ -149,60 +203,249 @@ export const Tasks = ({ showNotification }) => {
             ))}
           </div>
 
-          {/* Bulk actions */}
+          {/* Bulk Action complete all */}
           {activeTab !== 'completed' && (
             <button
               onClick={handleMarkAllComplete}
-              className="px-3.5 py-2 border border-slate-200 dark:border-slate-850 bg-white dark:bg-dark-card text-xs font-extrabold text-slate-750 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-2 border border-[#2B2B2B] hover:border-[#808080]/30 bg-[#171717] text-xs font-bold text-white rounded-xl transition-all flex items-center gap-1.5"
               title="Complete all pending tasks"
             >
-              <FiCheckSquare className="w-4 h-4 text-emerald-500" />
-              <span className="hidden md:inline">Mark All Completed</span>
+              <Check className="w-4 h-4 text-[#22C55E]" />
+              <span className="hidden md:inline">Complete All</span>
             </button>
           )}
 
-          {/* Toggle form button */}
+          {/* Toggle manual form dropdown */}
           <button
             onClick={() => setShowForm((prev) => !prev)}
-            className="px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-xs font-extrabold text-white rounded-xl shadow-md transition-all flex items-center gap-1.5 ml-auto sm:ml-0"
+            className="px-3.5 py-2 border border-[#DC2626] bg-[#050505] text-xs font-bold text-white rounded-xl hover:bg-[#DC2626] transition-all flex items-center gap-1.5 ml-auto sm:ml-0 shadow-md shadow-red-950/20"
           >
-            {showForm ? <FiMinus className="w-4 h-4" /> : <FiPlus className="w-4 h-4" />}
-            <span>{showForm ? 'Close Form' : 'Add Task'}</span>
+            {showForm ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            <span>{showForm ? 'Close Form' : 'New Task'}</span>
           </button>
         </div>
       </div>
 
-      {/* Task Creation Form dropdown view */}
-      {showForm && (
-        <div className="animate-slide-down">
-          <TaskForm
-            onTaskCreated={() => {
-              fetchTasks();
-              setShowForm(false);
-            }}
-            showNotification={showNotification}
-          />
-        </div>
-      )}
+      {/* Manual creation form drawer overlay */}
+      <AnimatePresence>
+        {showForm && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <TaskForm
+              onTaskCreated={() => {
+                fetchTasks();
+                setShowForm(false);
+              }}
+              showNotification={showNotification}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Task Count indicator label */}
-      <div className="flex justify-between items-center">
-        <span className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-widest">
-          Showing {sortedTasksList.length} task{sortedTasksList.length !== 1 && 's'}
-        </span>
-      </div>
-
-      {/* Tasks List */}
+      {/* Interactive Task Table */}
       {loading ? (
         <div className="py-12 flex justify-center">
-          <LoadingSpinner text="Refreshing tasks list..." />
+          <LoadingSpinner text="Querying tasks ledger..." />
+        </div>
+      ) : paginatedTasks.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-12 text-center bg-[#171717] border border-[#2B2B2B] rounded-2xl shadow-xl transition-all duration-300">
+          <div className="w-12 h-12 rounded-xl bg-red-950/20 text-[#DC2626] flex items-center justify-center mb-4 border border-red-900/20">
+            <Filter className="w-6 h-6 animate-pulse" />
+          </div>
+          <h3 className="text-sm font-bold text-white mb-1">No tasks matched</h3>
+          <p className="text-xs text-[#808080] max-w-xs leading-relaxed">
+            Try resetting your filters or describe your thoughts in the capture bar.
+          </p>
         </div>
       ) : (
-        <TaskList
-          tasks={sortedTasksList}
-          onUpdate={handleTaskUpdate}
-          onDelete={handleTaskDelete}
-        />
+        <div className="space-y-4">
+          <div className="overflow-x-auto border border-[#2B2B2B] rounded-2xl bg-[#171717] shadow-xl">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-[#2B2B2B] bg-[#101010] text-[#808080] text-3xs font-extrabold uppercase tracking-widest">
+                  <th className="py-4 px-4 w-12 text-center">Status</th>
+                  <th className="py-4 px-4 min-w-[200px]">Task Details</th>
+                  <th className="py-4 px-4 w-28">Category</th>
+                  <th className="py-4 px-4 w-28">Priority</th>
+                  <th className="py-4 px-4 w-36">Timeline</th>
+                  <th className="py-4 px-4 min-w-[120px]">Tags</th>
+                  <th className="py-4 px-4 w-16 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#2B2B2B]/45">
+                {paginatedTasks.map((task) => {
+                  const isComp = task.status === 'completed';
+                  const isMenuOpen = activeMenuId === task.id;
+                  
+                  return (
+                    <motion.tr
+                      key={task.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className={`hover:bg-[#2B2B2B]/15 transition-colors group ${
+                        isComp ? 'bg-[#101010]/35 text-[#808080]' : ''
+                      }`}
+                    >
+                      {/* Checkbox */}
+                      <td className="py-3.5 px-4 text-center">
+                        <button
+                          onClick={() => handleTaskUpdate(task.id, { status: isComp ? 'pending' : 'completed' })}
+                          className={`w-4.5 h-4.5 mx-auto flex items-center justify-center rounded border transition-all ${
+                            isComp
+                              ? 'bg-[#22C55E] border-[#22C55E] text-white'
+                              : 'border-[#2B2B2B] hover:border-[#DC2626] bg-[#0F0F0F]'
+                          }`}
+                        >
+                          {isComp && <Check className="w-3 h-3 stroke-[3px]" />}
+                        </button>
+                      </td>
+
+                      {/* Details Column */}
+                      <td className="py-3.5 px-4">
+                        <div className="min-w-0 pr-4">
+                          <span className={`text-xs font-semibold block truncate ${isComp ? 'line-through text-[#808080]' : 'text-white'}`}>
+                            {task.title}
+                          </span>
+                          {task.description && (
+                            <span className="text-4xs text-[#808080] block truncate mt-0.5 max-w-sm">
+                              {task.description}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Category */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <span className={`px-2 py-0.5 text-5xs font-bold uppercase tracking-wider rounded-md border ${
+                          categoryColors[task.category] || categoryColors.Other
+                        }`}>
+                          {task.category}
+                        </span>
+                      </td>
+
+                      {/* Priority */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <span className={`px-2 py-0.5 text-5xs font-bold uppercase tracking-wider rounded-md border ${
+                          priorityColors[task.priority] || priorityColors.Medium
+                        }`}>
+                          {task.priority || 'Medium'}
+                        </span>
+                      </td>
+
+                      {/* Timeline */}
+                      <td className="py-3.5 px-4 whitespace-nowrap text-4xs font-medium text-[#808080]">
+                        <div className="flex flex-col space-y-0.5">
+                          {task.due_date && (
+                            <span className="flex items-center">
+                              <Calendar className="w-3 h-3 mr-1 flex-shrink-0 text-[#808080]" />
+                              <span>{task.due_date}</span>
+                            </span>
+                          )}
+                          {task.due_time && (
+                            <span className="flex items-center">
+                              <Clock className="w-3 h-3 mr-1 flex-shrink-0 text-[#808080]" />
+                              <span>{task.due_time}</span>
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Tags */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-wrap gap-1">
+                          {task.tags && task.tags.length > 0 ? (
+                            task.tags.map((tag) => (
+                              <span key={tag} className="px-1.5 py-0.25 rounded-md bg-[#0F0F0F] border border-[#2B2B2B] text-5xs text-[#808080]">
+                                #{tag}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-5xs text-[#808080]/30 italic">None</span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Actions dropdown trigger */}
+                      <td className="py-3.5 px-4 text-center relative">
+                        <button
+                          onClick={() => setActiveMenuId(isMenuOpen ? null : task.id)}
+                          className="p-1 rounded hover:bg-[#2B2B2B] text-[#808080] hover:text-white transition-colors focus:outline-none"
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </button>
+
+                        <AnimatePresence>
+                          {isMenuOpen && (
+                            <>
+                              <div className="fixed inset-0 z-15" onClick={() => setActiveMenuId(null)} />
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="absolute right-4 mt-1 w-28 bg-[#171717] border border-[#2B2B2B] rounded-xl shadow-2xl overflow-hidden z-20 text-left"
+                              >
+                                <button
+                                  onClick={() => {
+                                    // Trigger editing or pass to parent
+                                    // For simplicity we use the inline actions or open custom flow
+                                    // Let's implement complete toggle / delete
+                                    handleTaskUpdate(task.id, { status: isComp ? 'pending' : 'completed' });
+                                    setActiveMenuId(null);
+                                  }}
+                                  className="w-full px-3 py-2 text-4xs font-bold uppercase text-[#B3B3B3] hover:text-white hover:bg-[#2B2B2B] transition-colors border-b border-[#2B2B2B]"
+                                >
+                                  {isComp ? 'Mark Open' : 'Complete'}
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    handleTaskDelete(task.id);
+                                    setActiveMenuId(null);
+                                  }}
+                                  className="w-full px-3 py-2 text-4xs font-bold uppercase text-[#DC2626] hover:bg-red-950/20 transition-colors"
+                                >
+                                  Delete
+                                </button>
+                              </motion.div>
+                            </>
+                          )}
+                        </AnimatePresence>
+                      </td>
+                    </motion.tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Table Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-between items-center px-2 py-3 bg-[#0F0F0F] border border-[#2B2B2B] rounded-xl text-xs font-semibold">
+              <span className="text-[#808080]">
+                Page {currentPage} of {totalPages}
+              </span>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-1 rounded border border-[#2B2B2B] bg-[#171717] hover:border-[#DC2626] disabled:opacity-40 disabled:hover:border-[#2B2B2B] text-white transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-1 rounded border border-[#2B2B2B] bg-[#171717] hover:border-[#DC2626] disabled:opacity-40 disabled:hover:border-[#2B2B2B] text-white transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

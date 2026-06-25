@@ -3,29 +3,27 @@ module.exports = {
   darkMode: 'class',
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
-    "./public/index.html"
+    "./index.html"
   ],
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#f5f3ff',
-          100: '#ede9fe',
-          200: '#ddd6fe',
-          300: '#c4b5fd',
-          400: '#a78bfa',
-          500: '#8b5cf6',
-          600: '#7c3aed',
-          700: '#6d28d9',
-          800: '#5b21b6',
-          900: '#4c1d95',
-        },
-        dark: {
-          bg: '#090d16',
-          card: '#111827',
-          border: '#1f2937',
-          text: '#f9fafb',
-          muted: '#9ca3af'
+        cyber: {
+          bg: '#050505',
+          bgSecondary: '#0F0F0F',
+          card: '#171717',
+          sidebar: '#101010',
+          navbar: '#0D0D0D',
+          border: '#2B2B2B',
+          redPrimary: '#DC2626',
+          redSecondary: '#EF4444',
+          redHover: '#F87171',
+          textPrimary: '#FFFFFF',
+          textSecondary: '#B3B3B3',
+          textMuted: '#808080',
+          success: '#22C55E',
+          warning: '#F59E0B',
+          error: '#DC2626',
         }
       },
       fontFamily: {
