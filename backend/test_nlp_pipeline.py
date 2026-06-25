@@ -174,5 +174,30 @@ class TestNLPPipeline(unittest.TestCase):
         self.assertEqual(mock_api_call.call_count, 1) # Only called API once!
         self.assertEqual(res1, res2)
 
+    @patch('ai_parser._cached_semantic_search')
+    def test_semantic_search_tasks(self, mock_cached_search):
+        """Test semantic_search_tasks function and caching integration."""
+        mock_cached_search.return_value = (1, 3)
+        tasks = [
+            {"id": 1, "title": "AWS deployment", "category": "Work", "tags": []},
+            {"id": 2, "title": "Buy groceries", "category": "Shopping", "tags": []},
+            {"id": 3, "title": "Cloud presentation", "category": "Work", "tags": []}
+        ]
+        
+        matches = ai_parser.semantic_search_tasks("cloud", tasks)
+        self.assertEqual(matches, [1, 3])
+        mock_cached_search.assert_called_once()
+
+    @patch('ai_parser._cached_semantic_search')
+    def test_semantic_search_tasks_failure(self, mock_cached_search):
+        """Test that semantic_search_tasks falls back to empty list on failure."""
+        mock_cached_search.side_effect = Exception("API Timeout")
+        tasks = [
+            {"id": 1, "title": "AWS deployment", "category": "Work", "tags": []}
+        ]
+        
+        matches = ai_parser.semantic_search_tasks("cloud", tasks)
+        self.assertEqual(matches, [])
+
 if __name__ == '__main__':
     unittest.main()

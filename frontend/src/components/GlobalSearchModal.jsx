@@ -89,6 +89,47 @@ export const GlobalSearchModal = () => {
     window.location.href = `/tasks?search=${encodeURIComponent(task.title)}`;
   };
 
+  const handleInputKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (results.length > 0) {
+        selectTask(results[0]);
+      } else if (query.trim()) {
+        if (!recentSearches.includes(query.trim())) {
+          const updated = [query.trim(), ...recentSearches.slice(0, 4)];
+          setRecentSearches(updated);
+          localStorage.setItem('recent_searches', JSON.stringify(updated));
+        }
+        setIsOpen(false);
+        window.location.href = `/tasks?search=${encodeURIComponent(query.trim())}`;
+      }
+    }
+  };
+
+  const highlightMatchText = (text, search) => {
+    if (!search || !search.trim()) return <span>{text}</span>;
+    try {
+      const escapedSearch = search.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regex = new RegExp(`(${escapedSearch})`, 'gi');
+      const parts = text.split(regex);
+      return (
+        <span>
+          {parts.map((part, idx) => 
+            regex.test(part) ? (
+              <mark key={idx} className="bg-transparent text-[#DC2626] font-bold p-0">
+                {part}
+              </mark>
+            ) : (
+              part
+            )
+          )}
+        </span>
+      );
+    } catch (e) {
+      return <span>{text}</span>;
+    }
+  };
+
   const categories = ['All', 'Work', 'Study', 'Personal', 'Shopping', 'Health', 'Finance', 'Travel', 'Other'];
   const priorities = ['All', 'High', 'Medium', 'Low'];
 
@@ -118,6 +159,7 @@ export const GlobalSearchModal = () => {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleInputKeyDown}
                 placeholder="Search all tasks..."
                 className="flex-1 bg-transparent text-white placeholder-[#808080] text-sm focus:outline-none"
               />
@@ -164,24 +206,62 @@ export const GlobalSearchModal = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {query.trim() === '' && recentSearches.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-3xs font-extrabold text-[#808080] uppercase tracking-wider">Recent Searches</h3>
-                    <button onClick={handleClearRecent} className="text-4xs text-[#DC2626] hover:underline font-bold uppercase">Clear</button>
+              {query.trim() === '' && (
+                <>
+                  {recentSearches.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-3xs font-extrabold text-[#808080] uppercase tracking-wider">Recent Searches</h3>
+                        <button onClick={handleClearRecent} className="text-4xs text-[#DC2626] hover:underline font-bold uppercase">Clear</button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {recentSearches.map((s, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleRecentClick(s)}
+                            className="px-2.5 py-1 rounded-xl bg-[#0F0F0F] border border-[#2B2B2B] text-xs text-[#B3B3B3] hover:text-white hover:border-[#808080]/30 transition-all"
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <h3 className="text-3xs font-extrabold text-[#808080] uppercase tracking-wider">Suggested Searches</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {['AWS Deployment', 'Cloud Presentation', 'Weekly Report', 'Gym Workout'].map((s, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setQuery(s)}
+                          className="px-2.5 py-1 rounded-xl bg-[#0F0F0F] border border-[#2B2B2B] text-xs text-[#B3B3B3] hover:text-white hover:border-[#808080]/30 transition-all"
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {recentSearches.map((s, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleRecentClick(s)}
-                        className="px-2.5 py-1 rounded-xl bg-[#0F0F0F] border border-[#2B2B2B] text-xs text-[#B3B3B3] hover:text-white hover:border-[#808080]/30 transition-all"
-                      >
-                        {s}
-                      </button>
-                    ))}
+
+                  <div className="space-y-2">
+                    <h3 className="text-3xs font-extrabold text-[#808080] uppercase tracking-wider">Popular Categories</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {['Work', 'Study', 'Personal', 'Shopping'].map((cat, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setCategoryFilter(cat)}
+                          className={`px-2.5 py-1 rounded-xl border text-xs transition-all ${
+                            categoryFilter === cat
+                              ? 'border-[#DC2626] bg-[#DC2626]/10 text-white font-semibold'
+                              : 'border-[#2B2B2B] bg-[#0F0F0F] text-[#B3B3B3] hover:text-white hover:border-[#808080]/30'
+                          }`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               <div>
@@ -190,7 +270,15 @@ export const GlobalSearchModal = () => {
                 </h3>
                 
                 {results.length === 0 ? (
-                  <p className="text-xs text-[#808080] italic py-4 text-center">No tasks match your filters.</p>
+                  <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
+                    <div className="p-3 rounded-full bg-[#2B2B2B]/20 text-[#808080] mb-3">
+                      <Search className="w-6 h-6" />
+                    </div>
+                    <p className="text-xs font-semibold text-white">No results found</p>
+                    <p className="text-4xs text-[#808080] mt-1 max-w-[240px]">
+                      We couldn't find any tasks matching "{query}". Try checking your spelling or filters.
+                    </p>
+                  </div>
                 ) : (
                   <div className="space-y-1.5">
                     {results.slice(0, 8).map((task) => (
@@ -201,7 +289,7 @@ export const GlobalSearchModal = () => {
                       >
                         <div className="flex flex-col min-w-0 pr-4">
                           <span className="text-xs font-semibold text-white group-hover:text-[#DC2626] transition-colors truncate">
-                            {task.title}
+                            {highlightMatchText(task.title, query)}
                           </span>
                           <div className="flex items-center space-x-3 mt-1.5 text-4xs text-[#808080]">
                             {task.due_date && (

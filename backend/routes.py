@@ -129,23 +129,43 @@ def get_tasks():
         category = request.args.get('category', '').strip()
         search = request.args.get('search', '').strip()
         
-        query = Task.query
+        base_query = Task.query
         
         if status and status.lower() != 'all':
-            query = query.filter(Task.status == status)
+            base_query = base_query.filter(Task.status == status)
             
         if category and category.lower() != 'all':
-            query = query.filter(Task.category == category)
+            base_query = base_query.filter(Task.category == category)
             
         if search:
-            # Search by title, description, or tags
-            query = query.filter(
+            # 1. Standard keyword match in database
+            keyword_query = base_query.filter(
                 Task.title.like(f'%{search}%') | 
                 Task.description.like(f'%{search}%') | 
                 Task.tags.like(f'%{search}%')
-            )
+            ).order_by(Task.created_at.desc())
             
-        tasks = query.order_by(Task.created_at.desc()).all()
+            keyword_tasks = keyword_query.all()
+            keyword_ids = {t.id for t in keyword_tasks}
+            
+            # 2. Get all candidate tasks matching category/status for semantic search
+            candidate_tasks = base_query.order_by(Task.created_at.desc()).all()
+            
+            try:
+                semantic_ids = ai_parser.semantic_search_tasks(search, candidate_tasks)
+            except Exception as e:
+                logger.warning(f"Semantic search failed: {e}. Falling back to keyword search only.")
+                semantic_ids = []
+                
+            # 3. Merge results (keyword matches first, then unique semantic matches)
+            merged_tasks = list(keyword_tasks)
+            for task in candidate_tasks:
+                if task.id in semantic_ids and task.id not in keyword_ids:
+                    merged_tasks.append(task)
+            
+            tasks = merged_tasks
+        else:
+            tasks = base_query.order_by(Task.created_at.desc()).all()
         
         return jsonify({
             "tasks": [t.to_dict() for t in tasks],

@@ -474,3 +474,61 @@ def fallback_generate_tags(title):
     stopwords = {"with", "your", "that", "this", "from", "have", "will", "shall", "should", "would", "about", "their", "there"}
     tags = [w for w in words if w not in stopwords]
     return list(set(tags))[:4]
+
+@lru_cache(maxsize=128)
+@handle_gemini_exceptions
+def _cached_semantic_search(query, tasks_json):
+    if not get_gemini_client():
+        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+        
+    prompt = (
+        f"You are a semantic search AI. The user is searching for: '{query}'.\n\n"
+        f"Here is a JSON list of tasks in the database:\n"
+        f"{tasks_json}\n\n"
+        f"Identify all tasks that are semantically related, relevant, or matching the intent of the search query.\n"
+        f"For example, searching for 'cloud' should match tasks containing 'AWS', 'Google Cloud', 'deployment', etc.\n"
+        f"Return ONLY a JSON object containing a list of matching task IDs, in the format:\n"
+        f"{{\n"
+        f"  \"matches\": [1, 4, 8]\n"
+        f"}}\n"
+        f"If no tasks are related, return an empty matches list. Provide NO explanation, just raw valid JSON."
+    )
+    
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    response = model.generate_content(
+        prompt,
+        generation_config={"response_mime_type": "application/json"}
+    )
+    text_response = response.text.strip()
+    
+    data = json.loads(text_response)
+    if isinstance(data, dict) and 'matches' in data:
+        return tuple(data['matches'])
+    return ()
+
+def semantic_search_tasks(query, tasks):
+    """
+    Finds tasks semantically related to the query using Gemini.
+    """
+    if not query or not query.strip() or not tasks:
+        return []
+        
+    small_tasks = []
+    for t in tasks:
+        t_dict = t.to_dict() if hasattr(t, 'to_dict') else t
+        small_tasks.append({
+            "id": t_dict.get("id"),
+            "title": t_dict.get("title"),
+            "description": t_dict.get("description"),
+            "category": t_dict.get("category"),
+            "tags": t_dict.get("tags")
+        })
+        
+    tasks_json = json.dumps(small_tasks)
+    
+    try:
+        matches = _cached_semantic_search(query, tasks_json)
+        return list(matches)
+    except Exception as e:
+        logger.warning(f"Error in semantic search execution: {e}")
+        return []

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Minus, Check, Calendar, Clock, Edit2, Trash2, MoreHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, Sparkles, Filter } from 'lucide-react';
+import { Plus, Minus, Check, X, Calendar, Clock, Edit2, Trash2, MoreHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, ChevronDown, Sparkles, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiService } from '../services/api';
 import SearchBar from '../components/SearchBar';
@@ -19,6 +19,101 @@ export const Tasks = ({ showNotification }) => {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
+
+  // Inline row edits states
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editFields, setEditFields] = useState({
+    title: '',
+    description: '',
+    category: '',
+    priority: '',
+    due_date: '',
+    due_time: '',
+    tags: ''
+  });
+
+  // Collapsible task groups state
+  const [collapsedGroups, setCollapsedGroups] = useState({
+    overdue: false,
+    today: false,
+    tomorrow: false,
+    thisWeek: false,
+    completed: false,
+    later: false
+  });
+
+  const toggleGroup = (groupKey) => {
+    setCollapsedGroups(prev => ({ ...prev, [groupKey]: !prev[groupKey] }));
+  };
+
+  const handleStartEdit = (task) => {
+    setEditingTaskId(task.id);
+    setEditFields({
+      title: task.title,
+      description: task.description || '',
+      category: task.category,
+      priority: task.priority || 'Medium',
+      due_date: task.due_date || '',
+      due_time: task.due_time || '',
+      tags: (task.tags || []).join(', ')
+    });
+    setActiveMenuId(null);
+  };
+
+  const handleSaveInlineEdit = async (id) => {
+    const formattedTags = editFields.tags
+      .split(',')
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0);
+
+    await handleTaskUpdate(id, {
+      title: editFields.title,
+      description: editFields.description,
+      category: editFields.category,
+      priority: editFields.priority,
+      due_date: editFields.due_date,
+      due_time: editFields.due_time,
+      tags: formattedTags
+    });
+    setEditingTaskId(null);
+  };
+
+  const handleCancelInlineEdit = () => {
+    setEditingTaskId(null);
+  };
+
+  const handleDuplicateTask = async (task) => {
+    try {
+      const taskData = {
+        title: `${task.title} (Copy)`,
+        description: task.description || '',
+        category: task.category,
+        priority: task.priority || 'Medium',
+        due_date: task.due_date || '',
+        due_time: task.due_time || '',
+        tags: task.tags || []
+      };
+      await apiService.createTask(taskData);
+      toast.success('Task duplicated successfully!');
+      fetchTasks();
+    } catch (err) {
+      toast.error(err.message || 'Failed to duplicate task.');
+    }
+    setActiveMenuId(null);
+  };
+
+  const handleCopyTaskLink = (task) => {
+    const link = `${window.location.origin}/tasks?search=${encodeURIComponent(task.title)}`;
+    navigator.clipboard.writeText(link);
+    toast.success('Search link copied to clipboard!');
+    setActiveMenuId(null);
+  };
+
+  const handleMoveCategory = async (id, newCat) => {
+    await handleTaskUpdate(id, { category: newCat });
+    toast.success(`Category updated to ${newCat}`);
+    setActiveMenuId(null);
+  };
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
@@ -106,8 +201,51 @@ export const Tasks = ({ showNotification }) => {
   // Sorting weight definitions
   const priorityWeight = { High: 3, Medium: 2, Low: 1 };
 
-  const getSortedTasks = () => {
-    return [...tasks].sort((a, b) => {
+  const getFilteredAndSortedTasks = () => {
+    let filtered = [...tasks];
+
+    // Filter by priority
+    if (filters.priority && filters.priority !== 'All') {
+      filtered = filtered.filter(t => t.priority === filters.priority);
+    }
+
+    // Filter by timeframe
+    if (filters.timeframe && filters.timeframe !== 'All') {
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      const endOfWeek = new Date(todayEnd.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+      filtered = filtered.filter(t => {
+        const dueStr = (t.due_date || '').trim().toLowerCase();
+        if (!dueStr) return false;
+
+        if (filters.timeframe === 'today') {
+          if (dueStr === 'today') return true;
+          const d = new Date(t.due_date);
+          return !isNaN(d.getTime()) && d >= todayStart && d <= todayEnd;
+        }
+
+        if (filters.timeframe === 'overdue') {
+          if (t.status === 'completed') return false;
+          if (dueStr === 'today' || dueStr === 'tomorrow') return false;
+          const d = new Date(t.due_date);
+          return !isNaN(d.getTime()) && d < todayStart;
+        }
+
+        if (filters.timeframe === 'this_week') {
+          if (dueStr === 'today') return true;
+          if (dueStr === 'tomorrow') return true;
+          const d = new Date(t.due_date);
+          return !isNaN(d.getTime()) && d >= todayStart && d <= endOfWeek;
+        }
+
+        return true;
+      });
+    }
+
+    // Sort tasks
+    return filtered.sort((a, b) => {
       if (sortBy === 'created_at') {
         return new Date(b.created_at) - new Date(a.created_at);
       } else if (sortBy === 'due_date') {
@@ -118,6 +256,8 @@ export const Tasks = ({ showNotification }) => {
         return (a.category || '').localeCompare(b.category || '');
       } else if (sortBy === 'priority') {
         return (priorityWeight[b.priority] || 2) - (priorityWeight[a.priority] || 2);
+      } else if (sortBy === 'alphabetical') {
+        return (a.title || '').localeCompare(b.title || '');
       }
       return 0;
     });
@@ -130,10 +270,73 @@ export const Tasks = ({ showNotification }) => {
     setFilters({
       search: newFilters.search,
       category: newFilters.category,
+      priority: newFilters.priority || 'All',
+      timeframe: newFilters.timeframe || 'All',
     });
   };
 
-  const sortedTasksList = getSortedTasks();
+  // Grouping helper
+  const getGroupedTasks = (tasksList) => {
+    const overdue = [];
+    const today = [];
+    const tomorrow = [];
+    const thisWeek = [];
+    const completed = [];
+    const later = [];
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    
+    const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+    const tomorrowEnd = new Date(todayEnd.getTime() + 24 * 60 * 60 * 1000);
+
+    const endOfWeek = new Date(todayEnd.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    tasksList.forEach(task => {
+      if (task.status === 'completed') {
+        completed.push(task);
+        return;
+      }
+
+      const dueStr = (task.due_date || '').trim().toLowerCase();
+      if (!dueStr) {
+        later.push(task);
+        return;
+      }
+
+      if (dueStr === 'today') {
+        today.push(task);
+        return;
+      }
+
+      if (dueStr === 'tomorrow') {
+        tomorrow.push(task);
+        return;
+      }
+
+      const dueDate = new Date(task.due_date);
+      if (isNaN(dueDate.getTime())) {
+        later.push(task);
+      } else {
+        if (dueDate < todayStart) {
+          overdue.push(task);
+        } else if (dueDate >= todayStart && dueDate <= todayEnd) {
+          today.push(task);
+        } else if (dueDate >= tomorrowStart && dueDate <= tomorrowEnd) {
+          tomorrow.push(task);
+        } else if (dueDate > tomorrowEnd && dueDate <= endOfWeek) {
+          thisWeek.push(task);
+        } else {
+          later.push(task);
+        }
+      }
+    });
+
+    return { overdue, today, tomorrow, thisWeek, completed, later };
+  };
+
+  const sortedTasksList = getFilteredAndSortedTasks();
   
   // Paginate items
   const totalPages = Math.ceil(sortedTasksList.length / itemsPerPage);
@@ -182,6 +385,7 @@ export const Tasks = ({ showNotification }) => {
             <option value="due_date">Due Date</option>
             <option value="category">Category</option>
             <option value="priority">Priority Weight</option>
+            <option value="alphabetical">Alphabetical</option>
           </select>
         </div>
 
@@ -277,146 +481,302 @@ export const Tasks = ({ showNotification }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#2B2B2B]/45">
-                {paginatedTasks.map((task) => {
-                  const isComp = task.status === 'completed';
-                  const isMenuOpen = activeMenuId === task.id;
-                  
-                  return (
-                    <motion.tr
-                      key={task.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className={`hover:bg-[#2B2B2B]/15 transition-colors group ${
-                        isComp ? 'bg-[#101010]/35 text-[#808080]' : ''
-                      }`}
-                    >
-                      {/* Checkbox */}
-                      <td className="py-3.5 px-4 text-center">
-                        <button
-                          onClick={() => handleTaskUpdate(task.id, { status: isComp ? 'pending' : 'completed' })}
-                          className={`w-4.5 h-4.5 mx-auto flex items-center justify-center rounded border transition-all ${
-                            isComp
-                              ? 'bg-[#22C55E] border-[#22C55E] text-white'
-                              : 'border-[#2B2B2B] hover:border-[#DC2626] bg-[#0F0F0F]'
-                          }`}
+                {(() => {
+                  const grouped = getGroupedTasks(paginatedTasks);
+                  const groupsDef = [
+                    { key: 'overdue', title: 'Overdue', list: grouped.overdue },
+                    { key: 'today', title: 'Today', list: grouped.today },
+                    { key: 'tomorrow', title: 'Tomorrow', list: grouped.tomorrow },
+                    { key: 'thisWeek', title: 'This Week', list: grouped.thisWeek },
+                    { key: 'later', title: 'Later / Backlog', list: grouped.later },
+                    { key: 'completed', title: 'Completed', list: grouped.completed }
+                  ];
+
+                  return groupsDef.map(({ key, title, list }) => {
+                    if (list.length === 0) return null;
+                    const isCollapsed = collapsedGroups[key];
+                    
+                    return (
+                      <React.Fragment key={key}>
+                        {/* Group Header Row */}
+                        <tr 
+                          onClick={() => toggleGroup(key)}
+                          className="bg-[#0F0F0F] border-y border-[#2B2B2B] hover:bg-[#2B2B2B]/20 cursor-pointer select-none"
                         >
-                          {isComp && <Check className="w-3 h-3 stroke-[3px]" />}
-                        </button>
-                      </td>
-
-                      {/* Details Column */}
-                      <td className="py-3.5 px-4">
-                        <div className="min-w-0 pr-4">
-                          <span className={`text-xs font-semibold block truncate ${isComp ? 'line-through text-[#808080]' : 'text-white'}`}>
-                            {task.title}
-                          </span>
-                          {task.description && (
-                            <span className="text-4xs text-[#808080] block truncate mt-0.5 max-w-sm">
-                              {task.description}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Category */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span className={`px-2 py-0.5 text-5xs font-bold uppercase tracking-wider rounded-md border ${
-                          categoryColors[task.category] || categoryColors.Other
-                        }`}>
-                          {task.category}
-                        </span>
-                      </td>
-
-                      {/* Priority */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span className={`px-2 py-0.5 text-5xs font-bold uppercase tracking-wider rounded-md border ${
-                          priorityColors[task.priority] || priorityColors.Medium
-                        }`}>
-                          {task.priority || 'Medium'}
-                        </span>
-                      </td>
-
-                      {/* Timeline */}
-                      <td className="py-3.5 px-4 whitespace-nowrap text-4xs font-medium text-[#808080]">
-                        <div className="flex flex-col space-y-0.5">
-                          {task.due_date && (
-                            <span className="flex items-center">
-                              <Calendar className="w-3 h-3 mr-1 flex-shrink-0 text-[#808080]" />
-                              <span>{task.due_date}</span>
-                            </span>
-                          )}
-                          {task.due_time && (
-                            <span className="flex items-center">
-                              <Clock className="w-3 h-3 mr-1 flex-shrink-0 text-[#808080]" />
-                              <span>{task.due_time}</span>
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Tags */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex flex-wrap gap-1">
-                          {task.tags && task.tags.length > 0 ? (
-                            task.tags.map((tag) => (
-                              <span key={tag} className="px-1.5 py-0.25 rounded-md bg-[#0F0F0F] border border-[#2B2B2B] text-5xs text-[#808080]">
-                                #{tag}
+                          <td colSpan={7} className="py-2.5 px-4 font-bold text-xs text-white">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-[#808080]">
+                                {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                               </span>
-                            ))
-                          ) : (
-                            <span className="text-5xs text-[#808080]/30 italic">None</span>
-                          )}
-                        </div>
-                      </td>
+                              <span>{title}</span>
+                              <span className="px-1.5 py-0.25 rounded bg-[#2B2B2B] text-5xs font-bold text-[#808080]">
+                                {list.length}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
 
-                      {/* Actions dropdown trigger */}
-                      <td className="py-3.5 px-4 text-center relative">
-                        <button
-                          onClick={() => setActiveMenuId(isMenuOpen ? null : task.id)}
-                          className="p-1 rounded hover:bg-[#2B2B2B] text-[#808080] hover:text-white transition-colors focus:outline-none"
-                        >
-                          <MoreHorizontal className="w-4 h-4" />
-                        </button>
+                        {/* Group Tasks */}
+                        {!isCollapsed && list.map((task) => {
+                          const isComp = task.status === 'completed';
+                          const isMenuOpen = activeMenuId === task.id;
+                          const isEditingRow = editingTaskId === task.id;
 
-                        <AnimatePresence>
-                          {isMenuOpen && (
-                            <>
-                              <div className="fixed inset-0 z-15" onClick={() => setActiveMenuId(null)} />
-                              <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className="absolute right-4 mt-1 w-28 bg-[#171717] border border-[#2B2B2B] rounded-xl shadow-2xl overflow-hidden z-20 text-left"
-                              >
+                          if (isEditingRow) {
+                            return (
+                              <tr key={task.id} className="bg-[#2B2B2B]/20">
+                                <td className="py-2.5 px-4 text-center">
+                                  <span className="text-4xs text-[#808080]">-</span>
+                                </td>
+                                <td className="py-2.5 px-4">
+                                  <input
+                                    type="text"
+                                    value={editFields.title}
+                                    onChange={(e) => setEditFields({ ...editFields, title: e.target.value })}
+                                    className="w-full px-2 py-1 text-xs rounded border border-[#2B2B2B] bg-[#0F0F0F] text-white focus:outline-none focus:border-[#DC2626]"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={editFields.description}
+                                    onChange={(e) => setEditFields({ ...editFields, description: e.target.value })}
+                                    className="w-full px-2 py-1 text-4xs rounded border border-[#2B2B2B] bg-[#0F0F0F] text-[#808080] focus:outline-none focus:border-[#DC2626] mt-1"
+                                    placeholder="Description"
+                                  />
+                                </td>
+                                <td className="py-2.5 px-4">
+                                  <select
+                                    value={editFields.category}
+                                    onChange={(e) => setEditFields({ ...editFields, category: e.target.value })}
+                                    className="px-2 py-1 text-4xs rounded border border-[#2B2B2B] bg-[#0F0F0F] text-white focus:outline-none"
+                                  >
+                                    {['Work', 'Study', 'Personal', 'Shopping', 'Health', 'Finance', 'Travel', 'Other'].map(cat => (
+                                      <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                  </select>
+                                </td>
+                                <td className="py-2.5 px-4">
+                                  <select
+                                    value={editFields.priority}
+                                    onChange={(e) => setEditFields({ ...editFields, priority: e.target.value })}
+                                    className="px-2 py-1 text-4xs rounded border border-[#2B2B2B] bg-[#0F0F0F] text-white focus:outline-none"
+                                  >
+                                    {['High', 'Medium', 'Low'].map(p => (
+                                      <option key={p} value={p}>{p}</option>
+                                    ))}
+                                  </select>
+                                </td>
+                                <td className="py-2.5 px-4">
+                                  <input
+                                    type="text"
+                                    value={editFields.due_date}
+                                    onChange={(e) => setEditFields({ ...editFields, due_date: e.target.value })}
+                                    className="w-full px-2 py-1 text-4xs rounded border border-[#2B2B2B] bg-[#0F0F0F] text-white focus:outline-none placeholder-[#808080]"
+                                    placeholder="Due Date"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={editFields.due_time}
+                                    onChange={(e) => setEditFields({ ...editFields, due_time: e.target.value })}
+                                    className="w-full px-2 py-1 text-4xs rounded border border-[#2B2B2B] bg-[#0F0F0F] text-white focus:outline-none placeholder-[#808080] mt-1"
+                                    placeholder="Due Time"
+                                  />
+                                </td>
+                                <td className="py-2.5 px-4">
+                                  <input
+                                    type="text"
+                                    value={editFields.tags}
+                                    onChange={(e) => setEditFields({ ...editFields, tags: e.target.value })}
+                                    className="w-full px-2 py-1 text-4xs rounded border border-[#2B2B2B] bg-[#0F0F0F] text-white focus:outline-none"
+                                    placeholder="tag1, tag2"
+                                  />
+                                </td>
+                                <td className="py-2.5 px-4 text-center">
+                                  <div className="flex justify-center space-x-1.5">
+                                    <button
+                                      onClick={() => handleSaveInlineEdit(task.id)}
+                                      className="p-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded transition-colors"
+                                    >
+                                      <Check className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={handleCancelInlineEdit}
+                                      className="p-1 bg-[#2B2B2B] text-[#B3B3B3] hover:text-white rounded transition-colors"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          }
+
+                          return (
+                            <motion.tr
+                              key={task.id}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              className={`hover:bg-[#2B2B2B]/15 transition-colors group ${
+                                isComp ? 'bg-[#101010]/35 text-[#808080]' : ''
+                              }`}
+                            >
+                              {/* Checkbox */}
+                              <td className="py-3.5 px-4 text-center">
                                 <button
-                                  onClick={() => {
-                                    // Trigger editing or pass to parent
-                                    // For simplicity we use the inline actions or open custom flow
-                                    // Let's implement complete toggle / delete
-                                    handleTaskUpdate(task.id, { status: isComp ? 'pending' : 'completed' });
-                                    setActiveMenuId(null);
-                                  }}
-                                  className="w-full px-3 py-2 text-4xs font-bold uppercase text-[#B3B3B3] hover:text-white hover:bg-[#2B2B2B] transition-colors border-b border-[#2B2B2B]"
+                                  onClick={() => handleTaskUpdate(task.id, { status: isComp ? 'pending' : 'completed' })}
+                                  className={`w-4.5 h-4.5 mx-auto flex items-center justify-center rounded border transition-all ${
+                                    isComp
+                                      ? 'bg-[#22C55E] border-[#22C55E] text-white'
+                                      : 'border-[#2B2B2B] hover:border-[#DC2626] bg-[#0F0F0F]'
+                                  }`}
                                 >
-                                  {isComp ? 'Mark Open' : 'Complete'}
+                                  {isComp && <Check className="w-3 h-3 stroke-[3px]" />}
                                 </button>
+                              </td>
+
+                              {/* Details Column */}
+                              <td className="py-3.5 px-4">
+                                <div className="min-w-0 pr-4">
+                                  <span className={`text-xs font-semibold block truncate ${isComp ? 'line-through text-[#808080]' : 'text-white'}`}>
+                                    {task.title}
+                                  </span>
+                                  {task.description && (
+                                    <span className="text-4xs text-[#808080] block truncate mt-0.5 max-w-sm">
+                                      {task.description}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* Category */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <span className={`px-2 py-0.5 text-5xs font-bold uppercase tracking-wider rounded-md border ${
+                                  categoryColors[task.category] || categoryColors.Other
+                                }`}>
+                                  {task.category}
+                                </span>
+                              </td>
+
+                              {/* Priority */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <span className={`px-2 py-0.5 text-5xs font-bold uppercase tracking-wider rounded-md border ${
+                                  priorityColors[task.priority] || priorityColors.Medium
+                                }`}>
+                                  {task.priority || 'Medium'}
+                                </span>
+                              </td>
+
+                              {/* Timeline */}
+                              <td className="py-3.5 px-4 whitespace-nowrap text-4xs font-medium text-[#808080]">
+                                <div className="flex flex-col space-y-0.5">
+                                  {task.due_date && (
+                                    <span className="flex items-center">
+                                      <Calendar className="w-3 h-3 mr-1 flex-shrink-0 text-[#808080]" />
+                                      <span>{task.due_date}</span>
+                                    </span>
+                                  )}
+                                  {task.due_time && (
+                                    <span className="flex items-center">
+                                      <Clock className="w-3 h-3 mr-1 flex-shrink-0 text-[#808080]" />
+                                      <span>{task.due_time}</span>
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* Tags */}
+                              <td className="py-3.5 px-4">
+                                <div className="flex flex-wrap gap-1">
+                                  {task.tags && task.tags.length > 0 ? (
+                                    task.tags.map((tag) => (
+                                      <span key={tag} className="px-1.5 py-0.25 rounded-md bg-[#0F0F0F] border border-[#2B2B2B] text-5xs text-[#808080]">
+                                        #{tag}
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-5xs text-[#808080]/30 italic">None</span>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* Actions dropdown trigger */}
+                              <td className="py-3.5 px-4 text-center relative">
                                 <button
-                                  onClick={() => {
-                                    handleTaskDelete(task.id);
-                                    setActiveMenuId(null);
-                                  }}
-                                  className="w-full px-3 py-2 text-4xs font-bold uppercase text-[#DC2626] hover:bg-red-950/20 transition-colors"
+                                  onClick={() => setActiveMenuId(isMenuOpen ? null : task.id)}
+                                  className="p-1 rounded hover:bg-[#2B2B2B] text-[#808080] hover:text-white transition-colors focus:outline-none"
                                 >
-                                  Delete
+                                  <MoreHorizontal className="w-4 h-4" />
                                 </button>
-                              </motion.div>
-                            </>
-                          )}
-                        </AnimatePresence>
-                      </td>
-                    </motion.tr>
-                  );
-                })}
+
+                                <AnimatePresence>
+                                  {isMenuOpen && (
+                                    <>
+                                      <div className="fixed inset-0 z-15" onClick={() => setActiveMenuId(null)} />
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        className="absolute right-4 mt-1 w-28 bg-[#171717] border border-[#2B2B2B] rounded-xl shadow-2xl overflow-hidden z-20 text-left"
+                                      >
+                                        <button
+                                          onClick={() => {
+                                            handleTaskUpdate(task.id, { status: isComp ? 'pending' : 'completed' });
+                                            setActiveMenuId(null);
+                                          }}
+                                          className="w-full px-3 py-2 text-4xs font-bold uppercase text-[#B3B3B3] hover:text-white hover:bg-[#2B2B2B] transition-colors border-b border-[#2B2B2B] text-left"
+                                        >
+                                          {isComp ? 'Mark Open' : 'Complete'}
+                                        </button>
+                                        <button
+                                          onClick={() => handleStartEdit(task)}
+                                          className="w-full px-3 py-2 text-4xs font-bold uppercase text-[#B3B3B3] hover:text-white hover:bg-[#2B2B2B] transition-colors border-b border-[#2B2B2B] text-left"
+                                        >
+                                          Edit
+                                        </button>
+                                        <button
+                                          onClick={() => handleDuplicateTask(task)}
+                                          className="w-full px-3 py-2 text-4xs font-bold uppercase text-[#B3B3B3] hover:text-white hover:bg-[#2B2B2B] transition-colors border-b border-[#2B2B2B] text-left"
+                                        >
+                                          Duplicate
+                                        </button>
+                                        <button
+                                          onClick={() => handleCopyTaskLink(task)}
+                                          className="w-full px-3 py-2 text-4xs font-bold uppercase text-[#B3B3B3] hover:text-white hover:bg-[#2B2B2B] transition-colors border-b border-[#2B2B2B] text-left"
+                                        >
+                                          Copy Link
+                                        </button>
+                                        <div className="border-b border-[#2B2B2B] px-3 py-1.5 text-4xs text-[#808080] font-bold uppercase">
+                                          Move To:
+                                        </div>
+                                        {['Work', 'Study', 'Personal', 'Shopping'].map(cat => (
+                                          <button
+                                            key={cat}
+                                            onClick={() => handleMoveCategory(task.id, cat)}
+                                            className="w-full px-4 py-1.5 text-5xs font-bold uppercase text-[#808080] hover:text-white hover:bg-[#2B2B2B] transition-colors text-left"
+                                          >
+                                            {cat}
+                                          </button>
+                                        ))}
+                                        <button
+                                          onClick={() => {
+                                            handleTaskDelete(task.id);
+                                            setActiveMenuId(null);
+                                          }}
+                                          className="w-full px-3 py-2 text-4xs font-bold uppercase text-[#DC2626] hover:bg-red-950/20 transition-colors text-left border-t border-[#2B2B2B]"
+                                        >
+                                          Delete
+                                        </button>
+                                      </motion.div>
+                                    </>
+                                  )}
+                                </AnimatePresence>
+                              </td>
+                            </motion.tr>
+                          );
+                        })}
+                      </React.Fragment>
+                    );
+                  });
+                })()}
               </tbody>
             </table>
           </div>

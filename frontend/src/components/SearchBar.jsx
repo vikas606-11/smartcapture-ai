@@ -5,19 +5,23 @@ export const SearchBar = ({ onChange }) => {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const [status, setStatus] = useState('All');
+  const [priority, setPriority] = useState('All');
+  const [timeframe, setTimeframe] = useState('All');
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
-      onChange({ search, category, status });
+      onChange({ search, category, status, priority, timeframe });
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [search, category, status, onChange]);
+  }, [search, category, status, priority, timeframe, onChange]);
 
   const handleClear = () => {
     setSearch('');
     setCategory('All');
     setStatus('All');
+    setPriority('All');
+    setTimeframe('All');
   };
 
   const categories = ['All', 'Work', 'Study', 'Personal', 'Shopping', 'Health', 'Finance', 'Travel', 'Other'];
@@ -28,7 +32,7 @@ export const SearchBar = ({ onChange }) => {
   ];
 
   return (
-    <div className="flex flex-col sm:flex-row gap-3.5 p-4 bg-[#171717] border border-[#2B2B2B] rounded-2xl shadow-lg transition-all duration-300">
+    <div className="flex flex-col lg:flex-row gap-3.5 p-4 bg-[#171717] border border-[#2B2B2B] rounded-2xl shadow-lg transition-all duration-300">
       
       {/* Search text field */}
       <div className="relative flex-1">
@@ -80,8 +84,36 @@ export const SearchBar = ({ onChange }) => {
         </select>
       </div>
 
+      {/* Priority Filter */}
+      <div className="w-full sm:w-44">
+        <select
+          value={priority}
+          onChange={(e) => setPriority(e.target.value)}
+          className="w-full px-4 py-2.5 rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-white text-xs focus:outline-none focus:border-[#DC2626] cursor-pointer"
+        >
+          <option value="All">All Priorities</option>
+          <option value="High">High Priority</option>
+          <option value="Medium">Medium Priority</option>
+          <option value="Low">Low Priority</option>
+        </select>
+      </div>
+
+      {/* Timeframe Filter */}
+      <div className="w-full sm:w-44">
+        <select
+          value={timeframe}
+          onChange={(e) => setTimeframe(e.target.value)}
+          className="w-full px-4 py-2.5 rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-white text-xs focus:outline-none focus:border-[#DC2626] cursor-pointer"
+        >
+          <option value="All">All Timeframes</option>
+          <option value="overdue">Overdue</option>
+          <option value="today">Due Today</option>
+          <option value="this_week">Due This Week</option>
+        </select>
+      </div>
+
       {/* Clear Filters Button */}
-      {(search || category !== 'All' || status !== 'All') && (
+      {(search || category !== 'All' || status !== 'All' || priority !== 'All' || timeframe !== 'All') && (
         <button
           onClick={handleClear}
           className="px-4 py-2.5 rounded-xl border border-dashed border-[#2B2B2B] hover:border-[#808080]/30 text-[#808080] hover:text-white bg-[#0F0F0F] transition-all font-semibold text-xs flex items-center justify-center gap-1.5"
