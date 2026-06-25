@@ -56,3 +56,33 @@
 2026-06-25 21:42:09,289 - smartcapture - INFO - [ai_parser.py:263] - Parsed JSON (Attempt 2 - Retry): {'tasks': [{'title': 'Retry success', 'category': 'Work', 'priority': 'Medium', 'due_date': '', 'due_time': '', 'tags': []}]}
 2026-06-25 21:42:09,289 - smartcapture - INFO - [ai_parser.py:266] - Validation result: PASS (Attempt 2 - Retry)
 2026-06-25 21:42:09,290 - smartcapture - WARNING - [ai_parser.py:533] - Error in semantic search execution: API Timeout
+2026-06-25 21:46:35,857 - smartcapture - INFO - [ai_parser.py:230] - Incoming user input for task extraction: 'Do something'
+2026-06-25 21:46:35,861 - smartcapture - INFO - [ai_parser.py:239] - Raw Gemini response (Attempt 1): {"tasks": [{"title": "Cached", "category": "Work", "priority": "Medium", "due_date": "", "due_time": "", "tags": []}]}
+2026-06-25 21:46:35,861 - smartcapture - INFO - [ai_parser.py:240] - Parsed JSON (Attempt 1): {'tasks': [{'title': 'Cached', 'category': 'Work', 'priority': 'Medium', 'due_date': '', 'due_time': '', 'tags': []}]}
+2026-06-25 21:46:35,861 - smartcapture - INFO - [ai_parser.py:241] - Validation result: PASS (Attempt 1)
+2026-06-25 21:46:35,861 - smartcapture - INFO - [ai_parser.py:230] - Incoming user input for task extraction: 'Do something'
+2026-06-25 21:46:35,861 - smartcapture - INFO - [ai_parser.py:239] - Raw Gemini response (Attempt 1): {"tasks": [{"title": "Cached", "category": "Work", "priority": "Medium", "due_date": "", "due_time": "", "tags": []}]}
+2026-06-25 21:46:35,862 - smartcapture - INFO - [ai_parser.py:240] - Parsed JSON (Attempt 1): {'tasks': [{'title': 'Cached', 'category': 'Work', 'priority': 'Medium', 'due_date': '', 'due_time': '', 'tags': []}]}
+2026-06-25 21:46:35,862 - smartcapture - INFO - [ai_parser.py:241] - Validation result: PASS (Attempt 1)
+2026-06-25 21:46:35,863 - smartcapture - INFO - [ai_parser.py:230] - Incoming user input for task extraction: 'Finish report tomorrow'
+2026-06-25 21:46:35,864 - smartcapture - INFO - [ai_parser.py:230] - Incoming user input for task extraction: 'Test retry logic'
+2026-06-25 21:46:35,864 - smartcapture - WARNING - [ai_parser.py:245] - Validation failed on Attempt 1: Task at index 0 is missing a non-empty 'title'.. Retrying once...
+2026-06-25 21:46:35,865 - smartcapture - INFO - [ai_parser.py:260] - Raw Gemini response (Attempt 2 - Retry): {"tasks": [{"title": "Retry success", "category": "Work", "priority": "Medium", "due_date": "", "due_time": "", "tags": []}]}
+2026-06-25 21:46:35,865 - smartcapture - INFO - [ai_parser.py:263] - Parsed JSON (Attempt 2 - Retry): {'tasks': [{'title': 'Retry success', 'category': 'Work', 'priority': 'Medium', 'due_date': '', 'due_time': '', 'tags': []}]}
+2026-06-25 21:46:35,865 - smartcapture - INFO - [ai_parser.py:266] - Validation result: PASS (Attempt 2 - Retry)
+2026-06-25 21:46:35,866 - smartcapture - WARNING - [ai_parser.py:533] - Error in semantic search execution: API Timeout
+2026-06-25 21:48:40,713 - smartcapture - INFO - [ai_parser.py:230] - Incoming user input for task extraction: 'Do something'
+2026-06-25 21:48:40,717 - smartcapture - INFO - [ai_parser.py:239] - Raw Gemini response (Attempt 1): {"tasks": [{"title": "Cached", "category": "Work", "priority": "Medium", "due_date": "", "due_time": "", "tags": []}]}
+2026-06-25 21:48:40,717 - smartcapture - INFO - [ai_parser.py:240] - Parsed JSON (Attempt 1): {'tasks': [{'title': 'Cached', 'category': 'Work', 'priority': 'Medium', 'due_date': '', 'due_time': '', 'tags': []}]}
+2026-06-25 21:48:40,718 - smartcapture - INFO - [ai_parser.py:241] - Validation result: PASS (Attempt 1)
+2026-06-25 21:48:40,718 - smartcapture - INFO - [ai_parser.py:230] - Incoming user input for task extraction: 'Do something'
+2026-06-25 21:48:40,718 - smartcapture - INFO - [ai_parser.py:239] - Raw Gemini response (Attempt 1): {"tasks": [{"title": "Cached", "category": "Work", "priority": "Medium", "due_date": "", "due_time": "", "tags": []}]}
+2026-06-25 21:48:40,718 - smartcapture - INFO - [ai_parser.py:240] - Parsed JSON (Attempt 1): {'tasks': [{'title': 'Cached', 'category': 'Work', 'priority': 'Medium', 'due_date': '', 'due_time': '', 'tags': []}]}
+2026-06-25 21:48:40,718 - smartcapture - INFO - [ai_parser.py:241] - Validation result: PASS (Attempt 1)
+2026-06-25 21:48:40,719 - smartcapture - INFO - [ai_parser.py:230] - Incoming user input for task extraction: 'Finish report tomorrow'
+2026-06-25 21:48:40,720 - smartcapture - INFO - [ai_parser.py:230] - Incoming user input for task extraction: 'Test retry logic'
+2026-06-25 21:48:40,720 - smartcapture - WARNING - [ai_parser.py:245] - Validation failed on Attempt 1: Task at index 0 is missing a non-empty 'title'.. Retrying once...
+2026-06-25 21:48:40,720 - smartcapture - INFO - [ai_parser.py:260] - Raw Gemini response (Attempt 2 - Retry): {"tasks": [{"title": "Retry success", "category": "Work", "priority": "Medium", "due_date": "", "due_time": "", "tags": []}]}
+2026-06-25 21:48:40,720 - smartcapture - INFO - [ai_parser.py:263] - Parsed JSON (Attempt 2 - Retry): {'tasks': [{'title': 'Retry success', 'category': 'Work', 'priority': 'Medium', 'due_date': '', 'due_time': '', 'tags': []}]}
+2026-06-25 21:48:40,721 - smartcapture - INFO - [ai_parser.py:266] - Validation result: PASS (Attempt 2 - Retry)
+2026-06-25 21:48:40,721 - smartcapture - WARNING - [ai_parser.py:533] - Error in semantic search execution: API Timeout

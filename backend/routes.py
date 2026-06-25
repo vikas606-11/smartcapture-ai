@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from database import db
 from models import Task, Note
 import ai_parser
+import ai_coach
 from logger import logger
 
 # Create routes blueprint
@@ -366,4 +367,15 @@ def get_productivity():
         
     except Exception as e:
         logger.error(f"Unexpected error in get_productivity: {e}")
+        return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
+
+@routes_bp.route('/coach/insights', methods=['GET'])
+def get_coach_insights():
+    try:
+        force_refresh = request.args.get('force_refresh', 'false').lower() == 'true'
+        tasks = Task.query.all()
+        insights = ai_coach.get_coaching_insights(tasks, force_refresh)
+        return jsonify(insights), 200
+    except Exception as e:
+        logger.error(f"Unexpected error in get_coach_insights: {e}")
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500

@@ -23,7 +23,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Tasks', path: '/tasks', icon: CheckSquare },
     { name: 'Notes', path: '/notes', icon: FileText },
-    { name: 'AI Summary', path: '/summary', icon: Sparkles },
+    { name: 'AI Coach', path: '/summary', icon: Sparkles },
   ];
 
   const handleSettingsClick = (e) => {

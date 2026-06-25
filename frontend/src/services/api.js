@@ -94,6 +94,13 @@ export const apiService = {
   getProductivity: async () => {
     const response = await API.get('/productivity');
     return response.data;
+  },
+  
+  getCoachingInsights: async (forceRefresh = false) => {
+    const response = await API.get('/coach/insights', {
+      params: { force_refresh: forceRefresh }
+    });
+    return response.data;
   }
 };
 
