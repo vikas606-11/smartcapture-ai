@@ -6,22 +6,28 @@ import TaskForm from '../components/TaskForm';
 import TaskList from '../components/TaskList';
 import ProductivityCard from '../components/ProductivityCard';
 import SummaryCard from '../components/SummaryCard';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { StatsSkeleton } from '../components/SkeletonLoaders';
 
 export const Dashboard = ({ showNotification }) => {
   const [tasks, setTasks] = useState([]);
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const loadDashboardData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const tasksData = await apiService.getAllTasks();
-      const notesData = await apiService.getAllNotes();
+      const [tasksData, notesData] = await Promise.all([
+        apiService.getAllTasks(),
+        apiService.getAllNotes()
+      ]);
       
       setTasks(tasksData.tasks || []);
       setNotes(notesData.notes || []);
     } catch (err) {
+      setError(err.message || 'Unable to connect to the backend server. Please verify it is running on http://localhost:5000.');
       showNotification(err.message || 'Failed to load dashboard data.', 'error');
     } finally {
       setLoading(false);
@@ -104,10 +110,59 @@ export const Dashboard = ({ showNotification }) => {
 
   const recentNotes = notes.slice(0, 3);
 
+  // Network connection failure view
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[500px] p-6">
+        <div className="bg-[#171717] border border-[#DC2626]/40 p-8 rounded-2xl shadow-xl max-w-md w-full text-center space-y-4">
+          <div className="w-12 h-12 rounded-full bg-red-950/20 text-[#DC2626] border border-red-900/30 flex items-center justify-center mx-auto">
+            <AlertCircle className="w-6 h-6 animate-pulse" />
+          </div>
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider">Network Connection Failure</h3>
+          <p className="text-xs text-[#808080] leading-relaxed">
+            {error}
+          </p>
+          <button
+            onClick={() => loadDashboardData()}
+            className="w-full py-2.5 bg-[#DC2626] hover:bg-[#EF4444] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 duration-150"
+            aria-label="Retry network connection"
+          >
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Dashboard skeleton loaders
   if (loading && totalTasks === 0 && totalNotes === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[500px]">
-        <LoadingSpinner text="Computing dashboard metrics..." />
+      <div className="space-y-6 p-6 max-w-7xl mx-auto">
+        <div className="bg-[#171717]/40 border border-[#2B2B2B] rounded-2xl p-6 h-32 flex flex-col justify-center space-y-3">
+          <div className="h-3.5 bg-[#2B2B2B] rounded w-32 animate-pulse"></div>
+          <div className="h-6 bg-[#2B2B2B] rounded w-64 animate-pulse"></div>
+          <div className="h-3 bg-[#2B2B2B] rounded w-96 animate-pulse mt-1"></div>
+        </div>
+        
+        <StatsSkeleton count={4} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
+          <div className="lg:col-span-6 space-y-6">
+            <div className="bg-[#171717] border border-[#2B2B2B] p-6 rounded-2xl h-44 animate-pulse flex flex-col justify-between">
+              <div className="h-4 bg-[#2B2B2B] rounded w-28"></div>
+              <div className="h-8 bg-[#2B2B2B] rounded w-full"></div>
+              <div className="h-4 bg-[#2B2B2B] rounded w-20"></div>
+            </div>
+            <div className="space-y-3">
+              <div className="h-3.5 bg-[#2B2B2B] rounded w-20 animate-pulse"></div>
+              <div className="bg-[#171717] border border-[#2B2B2B] p-6 rounded-2xl h-60 animate-pulse"></div>
+            </div>
+          </div>
+          <div className="lg:col-span-4 space-y-6">
+            <div className="bg-[#171717] border border-[#2B2B2B] p-6 rounded-2xl h-56 animate-pulse"></div>
+            <div className="bg-[#171717] border border-[#2B2B2B] p-6 rounded-2xl h-40 animate-pulse"></div>
+          </div>
+        </div>
       </div>
     );
   }

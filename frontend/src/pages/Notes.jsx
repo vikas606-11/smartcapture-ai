@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Trash2, X, Clock, Maximize2 } from 'lucide-react';
+import { Plus, Trash2, X, Clock, Maximize2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiService } from '../services/api';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { NoteCardSkeleton } from '../components/SkeletonLoaders';
 import toast from 'react-hot-toast';
 
 export const Notes = ({ showNotification }) => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [noteContent, setNoteContent] = useState('');
   const [expandedNote, setExpandedNote] = useState(null);
@@ -15,10 +16,12 @@ export const Notes = ({ showNotification }) => {
 
   const fetchNotes = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await apiService.getAllNotes();
       setNotes(response.notes || []);
     } catch (err) {
+      setError(err.message || 'Unable to connect to the backend server. Please verify it is running on http://localhost:5000.');
       toast.error(err.message || 'Failed to fetch notes.');
     } finally {
       setLoading(false);
@@ -132,9 +135,28 @@ export const Notes = ({ showNotification }) => {
       </AnimatePresence>
 
       {/* Notes Grid Display */}
-      {loading && notes.length === 0 ? (
-        <div className="py-12 flex justify-center">
-          <LoadingSpinner text="Querying notes ledger..." />
+      {error ? (
+        <div className="flex items-center justify-center p-8 bg-[#171717]/40 border border-[#DC2626]/20 rounded-2xl text-center">
+          <div className="max-w-md mx-auto py-6">
+            <div className="w-12 h-12 rounded-full bg-red-950/20 text-[#DC2626] border border-red-900/30 flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-6 h-6 animate-pulse" />
+            </div>
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-2">Network Connection Failure</h3>
+            <p className="text-xs text-[#808080] leading-relaxed mb-5">
+              {error}
+            </p>
+            <button
+              onClick={() => fetchNotes()}
+              className="px-6 py-2.5 bg-[#DC2626] hover:bg-[#EF4444] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 duration-150"
+              aria-label="Retry loading notes ledger"
+            >
+              Retry Notes Load
+            </button>
+          </div>
+        </div>
+      ) : loading && notes.length === 0 ? (
+        <div className="py-2">
+          <NoteCardSkeleton count={6} />
         </div>
       ) : notes.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 text-center bg-[#171717] border border-[#2B2B2B] rounded-2xl shadow-xl">

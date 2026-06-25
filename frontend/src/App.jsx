@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
-import Dashboard from './pages/Dashboard';
-import Tasks from './pages/Tasks';
-import Notes from './pages/Notes';
-import Summary from './pages/Summary';
+import LoadingSpinner from './components/LoadingSpinner';
 import toast, { Toaster } from 'react-hot-toast';
 import GlobalSearchModal from './components/GlobalSearchModal';
 import QuickCaptureModal from './components/QuickCaptureModal';
+
+// Lazy loading page routes for bundle sizes optimization & speed
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Tasks = lazy(() => import('./pages/Tasks'));
+const Notes = lazy(() => import('./pages/Notes'));
+const Summary = lazy(() => import('./pages/Summary'));
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -62,12 +65,18 @@ function App() {
             
             {/* Scrollable Main Content Container */}
             <main className="flex-1 overflow-y-auto bg-[#050505] transition-all duration-300">
-              <Routes>
-                <Route path="/" element={<Dashboard showNotification={showNotification} />} />
-                <Route path="/tasks" element={<Tasks showNotification={showNotification} />} />
-                <Route path="/notes" element={<Notes showNotification={showNotification} />} />
-                <Route path="/summary" element={<Summary showNotification={showNotification} />} />
-              </Routes>
+              <Suspense fallback={
+                <div className="flex items-center justify-center min-h-[500px]">
+                  <LoadingSpinner text="Configuring command cockpit..." />
+                </div>
+              }>
+                <Routes>
+                  <Route path="/" element={<Dashboard showNotification={showNotification} />} />
+                  <Route path="/tasks" element={<Tasks showNotification={showNotification} />} />
+                  <Route path="/notes" element={<Notes showNotification={showNotification} />} />
+                  <Route path="/summary" element={<Summary showNotification={showNotification} />} />
+                </Routes>
+              </Suspense>
             </main>
           </div>
           

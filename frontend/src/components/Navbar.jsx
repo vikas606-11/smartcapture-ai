@@ -21,7 +21,7 @@ export const Navbar = ({ onToggleSidebar }) => {
       case '/notes':
         return 'Notes Ledger';
       case '/summary':
-        return 'AI Summaries';
+        return 'AI Coach Dashboard';
       default:
         return 'SmartCapture Platform';
     }

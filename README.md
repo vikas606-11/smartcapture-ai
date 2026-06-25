@@ -1,181 +1,235 @@
 # 🧠 SmartCapture AI
 
-## Overview
-SmartCapture AI is a lightweight personal productivity assistant designed to help users capture and categorize tasks, notes, reminders, and to-dos through natural language input. It uses Google Gemini AI for smart task parsing, auto-categorization, semantic tagging, and daily productivity summaries.
+SmartCapture AI is a high-fidelity, production-ready personal productivity platform and AI-powered task command center. It captures natural language inputs, notes, and speech audio, using Gemini 1.5 Flash models to parse, categorize, tag, and structure actions dynamically.
 
-## Problem Statement
-Traditional task managers require manual categorization, tagging, and detail entry, which adds friction to capturing thoughts quickly. Users frequently capture ideas or actions in chaotic note apps or plain paper because it's faster. SmartCapture AI resolves this by allowing users to brain-dump actions or notes in plain English (via typing or voice command) and using LLMs to structure them automatically.
+---
 
-## Features
-- **Natural Language Capture**: Instantly parse sentences (e.g., *"Call dentist tomorrow at 3 PM and finish report before Friday"*) into multiple structured tasks.
-- **Voice Input**: Speech-to-text integration using the Web Speech Recognition API.
-- **Auto Categorization**: Automatic tagging under categories: `Work`, `Study`, `Personal`, `Shopping`, `Health`, or `Other`.
-- **Semantic Tagging**: Auto-generates hashtag keywords based on task context.
-- **Dynamic Task Management**: Search, sort, filter, mark as complete, inline edit, and confirm deletion on task cards.
-- **Smart Note Capture**: Instant notepad with automatic semantic tagging powered by Gemini.
-- **Productivity score**: Circular progress score showing total completed task percentage.
-- **AI Daily Summary**: Conversational productivity summaries generated daily by Gemini.
-- **Dark Mode**: Complete system-wide dark/light mode toggle cached in localStorage.
+## 📋 Problem Statement
 
-## Architecture Diagram
-```
-                     +---------------------------------------+
-                     |         React Web Application         |
-                     |         (Frontend - Port 3000)        |
-                     +-------------------+-------------------+
-                                         |
-                                         | REST API Requests (Axios)
-                                         v
-                     +-------------------+-------------------+
-                     |         Python Flask Service          |
-                     |         (Backend - Port 5000)         |
-                     +-------+-----------------------+-------+
-                             |                       |
-                             | SQL Queries           | Google GenAI SDK
-                             v                       v
-               +-------------+-------------+   +-----+-----+
-               |       SQLite Database     |   |  Gemini   |
-               |     (smartcapture.db)     |   |   API     |
-               +---------------------------+   +-----------+
-```
+Traditional task managers require intensive manual effort: clicking category dropdowns, dragging priority scales, typing tags, and scrolling through calendar date/time selectors. This friction causes users to abandon tracking and dump thoughts in chaotic notes apps.
 
-## Tech Stack
+SmartCapture AI removes input friction. Users can type or speak actions naturally (e.g., *"Finish the AWS security spec today by 4 PM and email David tomorrow morning"*), and the system automatically structures dates, times, tags, priorities, and categories.
 
-| Component | Technology | Description |
+---
+
+## 🚀 Key Features
+
+*   **Natural Language parsing**: Instantly splits compound inputs into multiple distinct, structured database task objects.
+*   **Voice Capture Integration**: Speech-to-text recording using the Web Speech Recognition API.
+*   **Dynamic Grouped Ledger**: Tasks are categorized into **Overdue**, **Today**, **Tomorrow**, **This Week**, and **Later / Backlog**, complete with accordion-style collapsibles.
+*   **AI Search & Semantic Tagging**: Command-line search command modal (Ctrl+K) supporting filters, keyword matching, and semantic query routing.
+*   **AI Coach Dashboard**: Personalized daily briefings, workload hour estimates (Today & Week), and actionable advice.
+*   **Task-Mutation Cache Hashing**: Compares SHA256 task signature configurations to serving cached coach responses, saving network bandwidth.
+*   **Distraction-free Focus Mode**: A dedicated full-screen Pomodoro environment listing the top 3 recommended tasks with inline checkboxes and custom durations (15m, 25m, 45m, 60m).
+*   **Notes ledger**: Clean markdown ledger cards with auto-generated semantic hashtags.
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technology | Purpose |
 | :--- | :--- | :--- |
-| **Frontend** | React 18 | Declarative component UI layout |
-| | React Router DOM v6 | Single page application routing |
-| | Tailwind CSS | Glassmorphism & custom utility styling |
-| | Axios | REST client communication |
-| | React Icons | Icon assets (Fi series) |
-| **Backend** | Python Flask | Lightweight web API framework |
-| | Flask-CORS | Cross-origin resource sharing permission |
-| | SQLAlchemy | Object Relational Mapper for database |
-| | python-dotenv | Configuration loader from `.env` |
-| **Database** | SQLite | File-based local SQL database |
-| **AI SDK** | Google Generative AI | Gemini 1.5 Flash task parsing & summary generator |
+| **Frontend** | React 18 | Declarative component architecture |
+| | Vite | Optimized asset bundling and fast HMR |
+| | Tailwind CSS | Sleek cyber glassmorphism design system |
+| | Framer Motion | Fluid card entry and page layout animations |
+| | Lucide React | Clean, responsive iconography |
+| | Axios | RESTful client communication |
+| **Backend** | Python Flask | Lightweight API endpoint gateway |
+| | SQLAlchemy | Database object mapping layers |
+| **Database** | SQLite | File-based SQL storage (`smartcapture.db`) |
+| **AI Integration** | Gemini GenAI | 1.5 Flash structured JSON model extraction |
 
-## Folder Structure
+---
+
+## 📐 Architecture & Data Flow
+
+```text
+                                  +------------------------------------+
+                                  |                USER                |
+                                  +-----------------+------------------+
+                                                    |
+                                                    | 1. Interacts with GUI / Speaks / Captures
+                                                    v
+                                  +-----------------+------------------+
+                                  |         React Vite Frontend        |
+                                  |        (Port 3000 - Client)        |
+                                  +-----------------+------------------+
+                                                    |
+                                                    | 2. API requests via Axios Client
+                                                    v
+                                  +-----------------+------------------+
+                                  |         Python Flask Server        |
+                                  |        (Port 5000 - Backend)       |
+                                  +-------+--------------------+-------+
+                                          |                    |
+                            3. SQL Query  |                    | 4. Prompts with local dates
+                                          v                    v
+                            +-------------+-------------+  +---+-----------------+
+                            |       SQLite Database     |  |   Google Gemini     |
+                            |      (smartcapture.db)    |  |  (1.5-flash API)    |
+                            +---------------------------+  +---------------------+
 ```
+
+### Data Flow Process:
+1.  **Capture**: User captures notes/tasks in the input bar.
+2.  **API Call**: Frontend sends payload to the Flask backend.
+3.  **NLP Pipeline**: Backend formats prompts with dynamic system time stamps, calls Gemini, and validates structured outputs.
+4.  **Database Commit**: Backend registers tasks/notes and automatically runs migrations.
+5.  **AI Coach Summary**: Cache hashing verifies task signature states and queries coaching briefings.
+
+---
+
+## 📂 Folder Structure
+
+```text
 smartcapture-ai/
 │
 ├── backend/
-│   ├── app.py              # Flask entrypoint & app config
-│   ├── routes.py           # Task/Note endpoints
-│   ├── database.py         # SQLAlchemy engine setup
-│   ├── models.py           # SQL Database Schemas
-│   ├── ai_parser.py        # Google Gemini API & fallback engine
-│   ├── requirements.txt    # Python packages
-│   └── .env                # API Key & environment configs
+│   ├── app.py              # Flask server instance setup
+│   ├── routes.py           # REST endpoints and controllers
+│   ├── database.py         # SQLAlchemy engine connection
+│   ├── models.py           # Database models (Task, Note)
+│   ├── ai_parser.py        # Gemini JSON extraction engine
+│   ├── ai_coach.py         # AI Briefing, Priorities & Caching
+│   ├── logger.py           # System logger mapping to app.log
+│   ├── test_nlp_pipeline.py# Backend unittest script
+│   ├── requirements.txt    # Python requirements list
+│   └── .env.example        # Environment template
 │
 ├── frontend/
-│   ├── public/
-│   │   └── index.html      # Main HTML template shell
+│   ├── dist/               # Production assets bundle
+│   ├── public/             # Static page shells
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── TaskForm.jsx            # Smart & manual task capture
-│   │   │   ├── VoiceInput.jsx          # Web Speech Recognition mic
-│   │   │   ├── TaskList.jsx            # Segmented list sections
-│   │   │   ├── TaskCard.jsx            # Details card & inline editor
-│   │   │   ├── SearchBar.jsx           # Search input & filters
-│   │   │   ├── ProductivityCard.jsx    # SVG progress score
-│   │   │   ├── SummaryCard.jsx         # Gradient AI coach card
+│   │   ├── components/     # UI components
+│   │   │   ├── TaskForm.jsx            # Capture bar input
+│   │   │   ├── TaskCard.jsx            # Task row expand details
+│   │   │   ├── TaskList.jsx            # Segmented lists
+│   │   │   ├── SearchBar.jsx           # Filter dropdown queries
+│   │   │   ├── SkeletonLoaders.jsx     # pulsating placeholder panels
+│   │   │   ├── GlobalSearchModal.jsx   # Ctrl+K command bar
+│   │   │   ├── QuickCaptureModal.jsx   # Global quick capture modal
 │   │   │   ├── Navbar.jsx              # Responsive header
-│   │   │   ├── Sidebar.jsx             # Collapsible menu
-│   │   │   ├── DarkModeToggle.jsx      # Theme switcher button
-│   │   │   ├── Notification.jsx        # Slide-in toast alerts
-│   │   │   └── LoadingSpinner.jsx      # Async progress spinner
-│   │   ├── pages/
-│   │   │   ├── Dashboard.jsx           # Quick look summary panel
-│   │   │   ├── Tasks.jsx               # Task manager archive
-│   │   │   ├── Notes.jsx               # Ideas & snippet grid
-│   │   │   └── Summary.jsx             # Category breakdown analytics
-│   │   ├── services/
-│   │   │   └── api.js                  # Axios endpoint queries
+│   │   │   └── Sidebar.jsx             # Collapsible menu
+│   │   ├── pages/          # Page views
+│   │   │   ├── Dashboard.jsx           # Stats overview Command Center
+│   │   │   ├── Tasks.jsx               # Grouped Tasks grid
+│   │   │   ├── Notes.jsx               # Snippets ledger
+│   │   │   └── Summary.jsx             # AI Coach Dashboard
 │   │   ├── context/
-│   │   │   └── ThemeContext.jsx        # Dark/light mode context
-│   │   ├── App.js                      # Root router layouts
-│   │   ├── index.js                    # Entrypoint mounting App
-│   │   └── index.css                   # Global styles & custom classes
-│   ├── package.json        # Node requirements & scripts
-│   ├── tailwind.config.js  # Styling criteria configuration
-│   └── postcss.config.js   # Autoprefixer settings
+│   │   │   └── ThemeContext.jsx        # Theme environment state
+│   │   ├── services/
+│   │   │   └── api.js                  # Axios client connection
+│   │   ├── App.jsx                 # Routes & Suspense splitting
+│   │   ├── index.jsx               # App entrypoint
+│   │   └── index.css               # Base Tailwind styles
+│   ├── tailwind.config.js  # Tailwind config
+│   └── vite.config.js      # Vite compilation configurations
 │
-└── README.md
+├── .gitignore              # Master repository ignore configuration
+└── README.md               # Overview documentation
 ```
 
-## Setup Instructions
+---
 
-### Backend Setup
-1. Open a terminal and navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-2. Create and activate a python virtual environment:
-   ```bash
-   python -m venv venv
-   # On Windows:
-   venv\Scripts\activate
-   # On Mac/Linux:
-   source venv/bin/activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Copy/rename `.env` and fill in your actual Google Gemini API key:
-   ```env
-   GEMINI_API_KEY=AIzaSy...
-   ```
-5. Launch the backend:
-   ```bash
-   python app.py
-   ```
-   *The backend runs on http://localhost:5000*
+## 🛠️ Installation & Setup
 
-### Frontend Setup
-1. Open a new terminal and navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-2. Install npm packages:
-   ```bash
-   npm install
-   ```
-3. Launch the development server:
-   ```bash
-   npm start
-   ```
-   *The frontend compiles and launches on http://localhost:3000*
+### Prerequisites
+*   Python 3.8+
+*   Node.js 18+
 
-## API Endpoints
+### 1. Backend Server Configuration
+1.  Navigate to the backend directory:
+    ```bash
+    cd backend
+    ```
+2.  Set up virtual environment:
+    ```bash
+    python -m venv venv
+    # Activate On Windows:
+    .\venv\Scripts\activate
+    # Activate On macOS/Linux:
+    source venv/bin/activate
+    ```
+3.  Install dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+4.  Set up environment configurations:
+    ```bash
+    cp .env.example .env
+    ```
+    *Open `.env` and fill in your actual `GEMINI_API_KEY`.*
+5.  Start the Flask server:
+    ```bash
+    python app.py
+    ```
+    *The API will start running on http://localhost:5000*
 
-| Method | Endpoint | Description | Payload / Response |
+### 2. Frontend Development Server
+1.  Navigate to the frontend directory:
+    ```bash
+    cd ../frontend
+    ```
+2.  Install packages:
+    ```bash
+    npm install
+    ```
+3.  Launch Vite development environment:
+    ```bash
+    npm run dev
+    ```
+    *Open http://localhost:3000 to launch the application.*
+
+---
+
+## 📡 API Endpoints
+
+| Method | Endpoint | Description | Payload/Response |
 | :--- | :--- | :--- | :--- |
-| **POST** | `/capture` | Parse natural language text into tasks | `{ "text": "..." }` -> `{ "tasks": [...], "count": 2 }` |
-| **POST** | `/task` | Create a single task manually | `{ title, description, category, tags, due_date, due_time }` |
-| **GET** | `/tasks` | Get filtered list of tasks | *Query params: ?status=pending&category=Work&search=kw* |
-| **GET** | `/task/<id>` | Fetch details of a single task | Returns JSON task model |
-| **PUT** | `/task/<id>` | Update fields of a task | Updates status, details or dates |
-| **DELETE** | `/task/<id>` | Delete task by primary ID | `{ "message": "Task deleted successfully" }` |
-| **POST** | `/note` | Capture a note and auto-tag | `{ "content": "..." }` |
-| **GET** | `/notes` | Fetch notes ordered by created_at | Returns list of notes |
-| **DELETE** | `/note/<id>` | Delete note by primary ID | `{ "message": "Note deleted successfully" }` |
-| **GET** | `/summary` | Retrieve summary and statistics | `{ "summary": "...", "stats": { pending, completed, total } }` |
-| **GET** | `/productivity` | Get detailed stats and progress scores | `{ score: 80, completed: 8, pending: 2, by_category: {...} }` |
+| **POST** | `/capture` | Parse natural text into multiple tasks | `{ "text": "..." }` -> `{ "tasks": [...] }` |
+| **POST** | `/task` | Create a manual task | `{ title, priority, due_date, ... }` |
+| **GET** | `/tasks` | Retrieve filtered tasks list | *Query params: ?search=keyword&category=Work* |
+| **PUT** | `/task/<id>` | Update specific task attributes | `{ status: "completed" }` |
+| **DELETE** | `/task/<id>` | Remove task from SQLite database | `{ "message": "Task deleted successfully" }` |
+| **POST** | `/note` | Save note and tag via Gemini | `{ "content": "..." }` |
+| **GET** | `/notes` | Fetch notes ordered by date | Returns notes array |
+| **GET** | `/coach/insights` | Fetch cached/force-refreshed briefing | *Query params: ?force_refresh=true* |
 
-## Screenshots
+---
 
-* **Dashboard View**: A grid displaying task statistics, a quick Smart Capture text area with microphone support, today's focus list, circular progress charts, and AI coach cards.
-* **Tasks Management**: Expanded dashboard displaying filters, search bars, tabs, bulk completions, and sorting.
-* **Notes Snippets**: Grid containing notes cards with tag lists, max length truncation, and detail popups.
-* **Productivity Analytics**: Full summary page displaying progress bar meters, category comparisons, and action logs.
+## ♿ Accessibility & Navigation
 
-## Future Enhancements
-- Recurring Task configurations (Daily, Weekly, Monthly).
-- Integration with external calendars (Google Calendar, Outlook).
-- Task reminders via Web Push Notifications.
-- Collaborative workspaces for shared capturing.
+*   **Keyboard Navigation**: Full support for `TAB` indexing across page links, filters, and cards.
+*   **Focus Ring Indicators**: High contrast Red outlines (`outline-2 outline-[#DC2626]`) show keyboard focus location.
+*   **ARIA attributes**: Descriptive labels on buttons (e.g. `aria-label="Retry connection"`, `aria-label="View notifications"`).
+*   **Responsive design**: Adapts to mobile screen dimensions with collapsible menus.
 
-## License
-MIT License. Created by Advanced Agentic Coding team.
+---
+
+## 🌐 Production Deployment Guide
+
+### Frontend Deployment (Vercel)
+1.  Build the static Vite output:
+    ```bash
+    cd frontend
+    npm run build
+    ```
+2.  Deploy the generated `dist` folder to Vercel:
+    *   Set the **Framework Preset** to `Vite`.
+    *   Set the **Build Command** to `npm run build`.
+    *   Set the **Output Directory** to `dist`.
+
+### Backend Deployment (Render)
+1.  Connect your Git repo to Render and choose **Web Service**.
+2.  Set environment variables:
+    *   `GEMINI_API_KEY`: *Your Google AI Studio Key*
+    *   `FLASK_ENV`: `production`
+3.  Set configuration commands:
+    *   **Build Command**: `pip install -r requirements.txt`
+    *   **Start Command**: `gunicorn app:app`
+
+---
+
+## 📝 License
+MIT License. Developed for hackathon submission.

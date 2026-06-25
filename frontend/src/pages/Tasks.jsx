@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Minus, Check, X, Calendar, Clock, Edit2, Trash2, MoreHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, ChevronDown, Sparkles, Filter } from 'lucide-react';
+import { Plus, Minus, Check, X, Calendar, Clock, Edit2, Trash2, MoreHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, ChevronDown, Sparkles, Filter, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiService } from '../services/api';
 import SearchBar from '../components/SearchBar';
 import TaskForm from '../components/TaskForm';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { TaskRowSkeleton } from '../components/SkeletonLoaders';
 import toast from 'react-hot-toast';
 
 export const Tasks = ({ showNotification }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState('All'); // 'All' | 'pending' | 'completed'
   const [sortBy, setSortBy] = useState('created_at'); // 'created_at' | 'due_date' | 'category' | 'priority'
@@ -117,6 +118,7 @@ export const Tasks = ({ showNotification }) => {
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const apiFilters = {
         search: filters.search,
@@ -128,6 +130,7 @@ export const Tasks = ({ showNotification }) => {
       setTasks(response.tasks || []);
       setCurrentPage(1); // Reset to page 1 on filter/tab update
     } catch (err) {
+      setError(err.message || 'Unable to connect to the backend server. Please verify it is running on http://localhost:5000.');
       toast.error(err.message || 'Failed to fetch tasks.');
     } finally {
       setLoading(false);
@@ -263,7 +266,7 @@ export const Tasks = ({ showNotification }) => {
     });
   };
 
-  const handleSearchBarChange = (newFilters) => {
+  const handleSearchBarChange = useCallback((newFilters) => {
     if (newFilters.status && newFilters.status !== 'All') {
       setActiveTab(newFilters.status);
     }
@@ -273,7 +276,7 @@ export const Tasks = ({ showNotification }) => {
       priority: newFilters.priority || 'All',
       timeframe: newFilters.timeframe || 'All',
     });
-  };
+  }, []);
 
   // Grouping helper
   const getGroupedTasks = (tasksList) => {
@@ -451,9 +454,28 @@ export const Tasks = ({ showNotification }) => {
       </AnimatePresence>
 
       {/* Interactive Task Table */}
-      {loading ? (
-        <div className="py-12 flex justify-center">
-          <LoadingSpinner text="Querying tasks ledger..." />
+      {error ? (
+        <div className="flex items-center justify-center p-8 bg-[#171717]/40 border border-[#DC2626]/20 rounded-2xl text-center">
+          <div className="max-w-md mx-auto py-6">
+            <div className="w-12 h-12 rounded-full bg-red-950/20 text-[#DC2626] border border-red-900/30 flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-6 h-6 animate-pulse" />
+            </div>
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-2">Network Connection Failure</h3>
+            <p className="text-xs text-[#808080] leading-relaxed mb-5">
+              {error}
+            </p>
+            <button
+              onClick={() => fetchTasks()}
+              className="px-6 py-2.5 bg-[#DC2626] hover:bg-[#EF4444] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 duration-150"
+              aria-label="Retry loading workspace tasks"
+            >
+              Retry Tasks Load
+            </button>
+          </div>
+        </div>
+      ) : loading ? (
+        <div className="py-2">
+          <TaskRowSkeleton count={5} />
         </div>
       ) : paginatedTasks.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 text-center bg-[#171717] border border-[#2B2B2B] rounded-2xl shadow-xl transition-all duration-300">
