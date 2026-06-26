@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -22,7 +22,8 @@ API.interceptors.response.use(
         errorMessage = `Server responded with status code ${error.response.status}`;
       }
     } else if (error.request) {
-      errorMessage = 'Unable to connect to the backend server. Please verify it is running on http://localhost:5000.';
+      const url = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      errorMessage = `Unable to connect to the backend server. Please verify it is running on ${url}.`;
     } else {
       errorMessage = error.message;
     }

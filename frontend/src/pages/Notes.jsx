@@ -21,7 +21,7 @@ export const Notes = ({ showNotification }) => {
       const response = await apiService.getAllNotes();
       setNotes(response.notes || []);
     } catch (err) {
-      setError(err.message || 'Unable to connect to the backend server. Please verify it is running on http://localhost:5000.');
+      setError(err.message || 'Unable to connect to the backend server. Please verify it is running.');
       toast.error(err.message || 'Failed to fetch notes.');
     } finally {
       setLoading(false);

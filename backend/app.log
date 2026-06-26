@@ -234,3 +234,33 @@
 2026-06-26 07:06:32,769 - smartcapture - INFO - [ai_coach.py:225] - Cache miss or force refresh. Generating new coaching insights...
 2026-06-26 07:06:32,798 - smartcapture - INFO - [ai_coach.py:263] - Successfully generated and cached AI coaching insights.
 2026-06-26 07:06:33,497 - smartcapture - INFO - [ai_coach.py:222] - Serving AI coach insights directly from cache.
+2026-06-26 08:43:34,618 - smartcapture - INFO - [routes.py:20] - Capture endpoint called with input: 'reply the devops tool'
+2026-06-26 08:43:34,620 - smartcapture - INFO - [ai_parser.py:186] - Incoming user input for task extraction: 'reply the devops tool'
+2026-06-26 08:43:34,622 - smartcapture - INFO - [groq_service.py:213] - Local NLP extraction started. Inputs: 'reply the devops tool' relative to: 'Friday, 2026-06-26 08:43 AM'
+2026-06-26 08:43:35,013 - smartcapture - INFO - [ai_parser.py:195] - Raw Gemini response (Attempt 1): {"tasks": [{"title": "Reply the devops tool", "description": "Auto-captured from: 'reply the devops tool'", "category": "Other", "priority": "Medium", "due_date": "", "due_time": "", "tags": ["reply", "devops", "tool"]}]}
+2026-06-26 08:43:35,013 - smartcapture - INFO - [ai_parser.py:196] - Parsed JSON (Attempt 1): {'tasks': [{'title': 'Reply the devops tool', 'description': "Auto-captured from: 'reply the devops tool'", 'category': 'Other', 'priority': 'Medium', 'due_date': '', 'due_time': '', 'tags': ['reply', 'devops', 'tool']}]}
+2026-06-26 08:43:35,013 - smartcapture - INFO - [ai_parser.py:197] - Validation result: PASS (Attempt 1)
+2026-06-26 08:43:35,097 - smartcapture - INFO - [routes.py:52] - Database insertion: Saved task 'Reply the devops tool' with ID 11 (Category: Other, Priority: Medium)
+2026-06-26 08:43:49,994 - smartcapture - INFO - [ai_coach.py:225] - Cache miss or force refresh. Generating new coaching insights...
+2026-06-26 08:43:50,004 - smartcapture - INFO - [ai_coach.py:263] - Successfully generated and cached AI coaching insights.
+2026-06-26 08:43:50,330 - smartcapture - INFO - [ai_coach.py:222] - Serving AI coach insights directly from cache.
+2026-06-26 08:48:16,675 - smartcapture - INFO - [ai_coach.py:222] - Serving AI coach insights directly from cache.
+2026-06-26 08:50:09,789 - smartcapture - INFO - [ai_parser.py:186] - Incoming user input for task extraction: 'Do something'
+2026-06-26 08:50:09,790 - smartcapture - INFO - [ai_parser.py:195] - Raw Gemini response (Attempt 1): {"tasks": [{"title": "Cached", "category": "Work", "priority": "Medium", "due_date": "", "due_time": "", "tags": []}]}
+2026-06-26 08:50:09,790 - smartcapture - INFO - [ai_parser.py:196] - Parsed JSON (Attempt 1): {'tasks': [{'title': 'Cached', 'category': 'Work', 'priority': 'Medium', 'due_date': '', 'due_time': '', 'tags': []}]}
+2026-06-26 08:50:09,790 - smartcapture - INFO - [ai_parser.py:197] - Validation result: PASS (Attempt 1)
+2026-06-26 08:50:09,790 - smartcapture - INFO - [ai_parser.py:186] - Incoming user input for task extraction: 'Do something'
+2026-06-26 08:50:09,790 - smartcapture - INFO - [ai_parser.py:195] - Raw Gemini response (Attempt 1): {"tasks": [{"title": "Cached", "category": "Work", "priority": "Medium", "due_date": "", "due_time": "", "tags": []}]}
+2026-06-26 08:50:09,791 - smartcapture - INFO - [ai_parser.py:196] - Parsed JSON (Attempt 1): {'tasks': [{'title': 'Cached', 'category': 'Work', 'priority': 'Medium', 'due_date': '', 'due_time': '', 'tags': []}]}
+2026-06-26 08:50:09,791 - smartcapture - INFO - [ai_parser.py:197] - Validation result: PASS (Attempt 1)
+2026-06-26 08:50:09,792 - smartcapture - INFO - [ai_parser.py:186] - Incoming user input for task extraction: 'Finish report tomorrow'
+2026-06-26 08:50:09,792 - smartcapture - INFO - [groq_service.py:213] - Local NLP extraction started. Inputs: 'Finish report tomorrow' relative to: 'Friday, 2026-06-26 08:50 AM'
+2026-06-26 08:50:09,983 - smartcapture - INFO - [ai_parser.py:195] - Raw Gemini response (Attempt 1): {"tasks": [{"title": "Finish report", "description": "Auto-captured from: 'Finish report tomorrow'", "category": "Work", "priority": "Medium", "due_date": "Tomorrow", "due_time": "", "tags": ["finish", "report", "work"]}]}
+2026-06-26 08:50:09,983 - smartcapture - INFO - [ai_parser.py:196] - Parsed JSON (Attempt 1): {'tasks': [{'title': 'Finish report', 'description': "Auto-captured from: 'Finish report tomorrow'", 'category': 'Work', 'priority': 'Medium', 'due_date': 'Tomorrow', 'due_time': '', 'tags': ['finish', 'report', 'work']}]}
+2026-06-26 08:50:09,983 - smartcapture - INFO - [ai_parser.py:197] - Validation result: PASS (Attempt 1)
+2026-06-26 08:50:09,985 - smartcapture - INFO - [ai_parser.py:186] - Incoming user input for task extraction: 'Test retry logic'
+2026-06-26 08:50:09,986 - smartcapture - WARNING - [ai_parser.py:201] - Validation failed on Attempt 1: Task at index 0 is missing a non-empty 'title'.. Retrying once...
+2026-06-26 08:50:09,986 - smartcapture - INFO - [ai_parser.py:216] - Raw Gemini response (Attempt 2 - Retry): {"tasks": [{"title": "Retry success", "category": "Work", "priority": "Medium", "due_date": "", "due_time": "", "tags": []}]}
+2026-06-26 08:50:09,986 - smartcapture - INFO - [ai_parser.py:219] - Parsed JSON (Attempt 2 - Retry): {'tasks': [{'title': 'Retry success', 'category': 'Work', 'priority': 'Medium', 'due_date': '', 'due_time': '', 'tags': []}]}
+2026-06-26 08:50:09,986 - smartcapture - INFO - [ai_parser.py:222] - Validation result: PASS (Attempt 2 - Retry)
+2026-06-26 08:50:09,987 - smartcapture - WARNING - [ai_parser.py:449] - Error in semantic search execution: API Timeout

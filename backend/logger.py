@@ -19,12 +19,19 @@ def setup_logger():
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
         
-        # File Handler
-        log_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app.log")
-        file_handler = logging.FileHandler(log_file, encoding='utf-8')
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
-        
+        # File Handler (only for development/testing environments to avoid write issues in serverless/containers)
+        flask_env = os.getenv("FLASK_ENV", "development")
+        if flask_env != "production":
+            try:
+                log_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app.log")
+                file_handler = logging.FileHandler(log_file, encoding='utf-8')
+                file_handler.setFormatter(formatter)
+                logger.addHandler(file_handler)
+            except Exception as e:
+                # Fallback gracefully
+                console_handler.setLevel(logging.INFO)
+                logger.warning(f"Could not initialize file logging handler: {e}")
+                
     return logger
 
 logger = setup_logger()

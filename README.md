@@ -209,25 +209,63 @@ smartcapture-ai/
 
 ## 🌐 Production Deployment Guide
 
-### Frontend Deployment (Vercel)
-1.  Build the static Vite output:
-    ```bash
-    cd frontend
-    npm run build
-    ```
-2.  Deploy the generated `dist` folder to Vercel:
-    *   Set the **Framework Preset** to `Vite`.
-    *   Set the **Build Command** to `npm run build`.
-    *   Set the **Output Directory** to `dist`.
+This application is ready to be deployed entirely on **Free Tier** hosting providers (Vercel for the React frontend, Railway for the Flask backend), using a local SQLite database for zero-cost operation.
 
-### Backend Deployment (Render)
-1.  Connect your Git repo to Render and choose **Web Service**.
-2.  Set environment variables:
-    *   `GROQ_API_KEY`: *Your Groq Console API Key*
-    *   `FLASK_ENV`: `production`
-3.  Set configuration commands:
-    *   **Build Command**: `pip install -r requirements.txt`
-    *   **Start Command**: `gunicorn app:app`
+### Deployed Applications (Hackathon Demo)
+- **Frontend URL**: `https://smartcapture-ai.vercel.app` (Placeholder - Replace with your live Vercel URL)
+- **Backend URL**: `https://smartcapture-ai.up.railway.app` (Placeholder - Replace with your live Railway URL)
+
+---
+
+### 1. Backend Deployment (Railway Free Tier)
+
+1. **Sign Up / Log In**: Go to [Railway.app](https://railway.app/) and authenticate using your GitHub account.
+2. **Create New Project**: Click **New Project** -> **Deploy from GitHub repo** -> Select `smartcapture-ai`.
+3. **Configure Service**:
+   - In the service settings, set the **Root Directory** to `/backend`.
+   - Railway will automatically detect the `Procfile` containing `web: gunicorn app:app` and start the Gunicorn server.
+4. **Environment Variables**:
+   Navigate to the **Variables** tab of your service and add:
+   - `FLASK_ENV`: `production`
+   - `FLASK_DEBUG`: `False`
+   - `PORT`: `5000` (or leave empty, Railway injects this automatically)
+   - `DATABASE_URL`: `sqlite:///smartcapture.db`
+   - `FRONTEND_URL`: `https://your-frontend-vercel-domain.vercel.app` (Replace with your Vercel URL once generated; can be a comma-separated list of origins)
+   - `GEMINI_API_KEY`: *Optional API Key* (If you decide to configure real Gemini AI briefing generation)
+   - `GROQ_API_KEY`: *Optional API Key* (If you decide to configure real Groq AI task extraction)
+5. **Domain Setting**: Go to the **Settings** tab -> click **Generate Domain** under Networking. Copy this URL (e.g., `https://backend-production-xyz.up.railway.app`).
+
+---
+
+### 2. Frontend Deployment (Vercel Free Tier)
+
+1. **Log In to Vercel**: Sign up or log in to [Vercel](https://vercel.com/) with GitHub.
+2. **Add New Project**: Click **Add New** -> **Project** -> Import the `smartcapture-ai` repository.
+3. **Configure Build Settings**:
+   - Set **Framework Preset** to `Vite`.
+   - Set the **Root Directory** to `frontend`.
+   - **Build Command** should default to `npm run build`.
+   - **Output Directory** should default to `dist`.
+4. **Environment Variables**:
+   Under the **Environment Variables** section, add:
+   - `VITE_API_BASE_URL`: `https://your-backend-railway-domain.up.railway.app` (Use the generated backend domain from the Railway deployment step)
+5. **Deploy**: Click **Deploy**. Vercel will build the frontend and generate a live URL (e.g., `https://smartcapture-ai.vercel.app`).
+6. **Complete CORS Loop**: Back in your Railway service, update your `FRONTEND_URL` environment variable to match this generated Vercel domain.
+
+---
+
+### 3. Continuous Deployment (Git Integration)
+
+Every push to your main branch will automatically trigger:
+- A new build and deployment of the frontend on Vercel.
+- A new container build and deployment of the backend on Railway.
+
+---
+
+### ⚠️ Known Free Tier Limitations
+
+- **SQLite Database Ephemerality**: Since SQLite is a file-based SQL database and Railway containers run on an ephemeral filesystem, database updates (added tasks, notes, or stats) will reset whenever the backend container restarts, sleeps, or redeploys. To prevent this without incurring cost, you would need to connect to a free external SQL server (e.g., Neon Postgres, Supabase DB) and change `DATABASE_URL`, but for hackathon demo purposes, SQLite is kept.
+- **Server Spin-up / Cold Starts**: Under the free tiers, the backend server might take a few seconds to spin up on the first request if it has gone idle.
 
 ---
 

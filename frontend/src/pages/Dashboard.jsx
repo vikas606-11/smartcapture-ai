@@ -81,7 +81,7 @@ export const Dashboard = ({ showNotification }) => {
       setNotes(notesData.notes || []);
       setProductivity(productivityData || { score: 0 });
     } catch (err) {
-      setError(err.message || 'Unable to connect to the backend server. Please verify it is running on http://localhost:5000.');
+      setError(err.message || 'Unable to connect to the backend server. Please verify it is running.');
       showNotification(err.message || 'Failed to load dashboard data.', 'error');
     } finally {
       setLoading(false);

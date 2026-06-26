@@ -40,8 +40,10 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
-    # Configure Flask-CORS to permit requests from http://localhost:3000
-    CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+    # Configure Flask-CORS to permit requests from dynamic frontend URL
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    origins = [orig.strip() for orig in frontend_url.split(",") if orig.strip()]
+    CORS(app, resources={r"/*": {"origins": origins}})
     
     # Register blueprints/routes
     app.register_blueprint(routes_bp)
@@ -69,7 +71,14 @@ def create_app():
     
     return app
 
+# Expose app globally for WSGI servers like Gunicorn
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
     debug_mode = os.getenv("FLASK_DEBUG", "True").lower() in ("true", "1", "yes")
-    app.run(host='0.0.0.0', port=5000, debug=debug_mode)
+    flask_env = os.getenv("FLASK_ENV", "development")
+    if flask_env == "production":
+        debug_mode = False
+    
+    port = int(os.getenv("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)

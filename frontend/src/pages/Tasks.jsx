@@ -92,7 +92,7 @@ export const Tasks = ({ showNotification }) => {
       const response = await apiService.getAllTasks();
       setTasks(response.tasks || []);
     } catch (err) {
-      setError(err.message || 'Unable to connect to the backend server. Please verify it is running on http://localhost:5000.');
+      setError(err.message || 'Unable to connect to the backend server. Please verify it is running.');
       toast.error(err.message || 'Failed to fetch tasks.');
     } finally {
       setLoading(false);

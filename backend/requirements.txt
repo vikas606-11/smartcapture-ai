@@ -5,3 +5,4 @@ spacy
 dateparser
 python-dotenv
 flask-sqlalchemy
+gunicorn
