@@ -1,6 +1,6 @@
 # 🧠 SmartCapture AI
 
-SmartCapture AI is a high-fidelity, production-ready personal productivity platform and AI-powered task command center. It captures natural language inputs, notes, and speech audio, using Gemini 1.5 Flash models to parse, categorize, tag, and structure actions dynamically.
+SmartCapture AI is a high-fidelity, production-ready personal productivity platform and AI-powered task command center. It captures natural language inputs, notes, and speech audio, using the Groq API (llama-3.3-70b-versatile) to parse, categorize, tag, and structure actions dynamically.
 
 ---
 
@@ -38,7 +38,7 @@ SmartCapture AI removes input friction. Users can type or speak actions naturall
 | **Backend** | Python Flask | Lightweight API endpoint gateway |
 | | SQLAlchemy | Database object mapping layers |
 | **Database** | SQLite | File-based SQL storage (`smartcapture.db`) |
-| **AI Integration** | Gemini GenAI | 1.5 Flash structured JSON model extraction |
+| **AI Integration** | Groq SDK | llama-3.3-70b-versatile JSON model extraction |
 
 ---
 
@@ -66,15 +66,15 @@ SmartCapture AI removes input friction. Users can type or speak actions naturall
                             3. SQL Query  |                    | 4. Prompts with local dates
                                           v                    v
                             +-------------+-------------+  +---+-----------------+
-                            |       SQLite Database     |  |   Google Gemini     |
-                            |      (smartcapture.db)    |  |  (1.5-flash API)    |
+                            |       SQLite Database     |  |   Groq API          |
+                            |      (smartcapture.db)    |  |  (llama-3.3 API)    |
                             +---------------------------+  +---------------------+
 ```
 
 ### Data Flow Process:
 1.  **Capture**: User captures notes/tasks in the input bar.
 2.  **API Call**: Frontend sends payload to the Flask backend.
-3.  **NLP Pipeline**: Backend formats prompts with dynamic system time stamps, calls Gemini, and validates structured outputs.
+3.  **NLP Pipeline**: Backend formats prompts with dynamic system time stamps, calls Groq, and validates structured outputs.
 4.  **Database Commit**: Backend registers tasks/notes and automatically runs migrations.
 5.  **AI Coach Summary**: Cache hashing verifies task signature states and queries coaching briefings.
 
@@ -90,7 +90,7 @@ smartcapture-ai/
 │   ├── routes.py           # REST endpoints and controllers
 │   ├── database.py         # SQLAlchemy engine connection
 │   ├── models.py           # Database models (Task, Note)
-│   ├── ai_parser.py        # Gemini JSON extraction engine
+│   ├── ai_parser.py        # NLP JSON extraction engine using Groq
 │   ├── ai_coach.py         # AI Briefing, Priorities & Caching
 │   ├── logger.py           # System logger mapping to app.log
 │   ├── test_nlp_pipeline.py# Backend unittest script
@@ -159,7 +159,7 @@ smartcapture-ai/
     ```bash
     cp .env.example .env
     ```
-    *Open `.env` and fill in your actual `GEMINI_API_KEY`.*
+    *Open `.env` and fill in your actual `GROQ_API_KEY`.*
 5.  Start the Flask server:
     ```bash
     python app.py
@@ -192,7 +192,7 @@ smartcapture-ai/
 | **GET** | `/tasks` | Retrieve filtered tasks list | *Query params: ?search=keyword&category=Work* |
 | **PUT** | `/task/<id>` | Update specific task attributes | `{ status: "completed" }` |
 | **DELETE** | `/task/<id>` | Remove task from SQLite database | `{ "message": "Task deleted successfully" }` |
-| **POST** | `/note` | Save note and tag via Gemini | `{ "content": "..." }` |
+| **POST** | `/note` | Save note and tag via Groq | `{ "content": "..." }` |
 | **GET** | `/notes` | Fetch notes ordered by date | Returns notes array |
 | **GET** | `/coach/insights` | Fetch cached/force-refreshed briefing | *Query params: ?force_refresh=true* |
 
@@ -223,7 +223,7 @@ smartcapture-ai/
 ### Backend Deployment (Render)
 1.  Connect your Git repo to Render and choose **Web Service**.
 2.  Set environment variables:
-    *   `GEMINI_API_KEY`: *Your Google AI Studio Key*
+    *   `GROQ_API_KEY`: *Your Groq Console API Key*
     *   `FLASK_ENV`: `production`
 3.  Set configuration commands:
     *   **Build Command**: `pip install -r requirements.txt`

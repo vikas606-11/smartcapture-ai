@@ -1,6 +1,7 @@
 flask
 flask-cors
 sqlalchemy
-google-generativeai
+spacy
+dateparser
 python-dotenv
 flask-sqlalchemy

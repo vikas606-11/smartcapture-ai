@@ -5,13 +5,14 @@ import {
   LayoutDashboard, 
   CheckSquare, 
   FileText, 
-  Sparkles, 
+  Zap, 
   Search, 
   Settings, 
   ChevronLeft, 
   ChevronRight,
   X,
-  Zap
+  Brain,
+  BarChart2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -19,36 +20,27 @@ export const Sidebar = ({ isOpen, onClose }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
 
-  const links = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { name: 'Tasks', path: '/tasks', icon: CheckSquare },
-    { name: 'Notes', path: '/notes', icon: FileText },
-    { name: 'AI Coach', path: '/summary', icon: Sparkles },
-  ];
-
   const handleSettingsClick = (e) => {
     e.preventDefault();
-    toast('Settings are coming soon in Commit #3!', {
-      icon: '⚙️',
-      style: {
-        background: '#171717',
-        color: '#FFFFFF',
-        border: '1px solid #2B2B2B',
-        borderRadius: '12px',
-      }
-    });
+    window.dispatchEvent(new Event('open-settings-modal'));
+    if (onClose) onClose();
   };
 
   const handleSearchClick = (e) => {
     e.preventDefault();
-    // Dispatch a custom event to open the global search modal
     window.dispatchEvent(new Event('open-global-search'));
+    if (onClose) onClose();
+  };
+
+  const handleAnalyticsClick = (e) => {
+    e.preventDefault();
+    // Navigate to Summary page which acts as the core analytics panel
+    window.location.href = '/summary';
     if (onClose) onClose();
   };
 
   const handleSmartCaptureFocus = (e) => {
     e.preventDefault();
-    // If we're not on dashboard, go to dashboard first
     if (location.pathname !== '/') {
       window.location.href = '/?focus-capture=true';
     } else {
@@ -60,6 +52,17 @@ export const Sidebar = ({ isOpen, onClose }) => {
     }
     if (onClose) onClose();
   };
+
+  const menuItems = [
+    { type: 'link', name: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { type: 'action', name: 'Smart Capture', onClick: handleSmartCaptureFocus, icon: Zap },
+    { type: 'link', name: 'Tasks', path: '/tasks', icon: CheckSquare },
+    { type: 'link', name: 'Notes', path: '/notes', icon: FileText },
+    { type: 'link', name: 'AI Insights', path: '/summary', icon: Brain },
+    { type: 'action', name: 'Search', onClick: handleSearchClick, icon: Search },
+    { type: 'action', name: 'Analytics', onClick: handleAnalyticsClick, icon: BarChart2 },
+    { type: 'action', name: 'Settings', onClick: handleSettingsClick, icon: Settings },
+  ];
 
   return (
     <>
@@ -73,23 +76,24 @@ export const Sidebar = ({ isOpen, onClose }) => {
 
       {/* Sidebar container */}
       <motion.aside
-        animate={{ width: isCollapsed ? 80 : 256 }}
-        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#101010] text-[#FFFFFF] border-r border-[#2B2B2B] md:static md:translate-x-0 ${
+        animate={{ width: isCollapsed ? 72 : 240 }}
+        transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1.0] }}
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#0D0D0D] text-[#FFFFFF] border-r border-[#262626] md:static md:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } overflow-hidden h-screen`}
       >
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between h-16 px-5 border-b border-[#2B2B2B] flex-shrink-0">
-          <div className="flex items-center space-x-3 overflow-hidden">
-            <div className="w-8 h-8 rounded-lg bg-[#DC2626] flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-950/50">
+        <div className="flex items-center justify-between h-14 px-4 border-b border-[#262626] flex-shrink-0">
+          <div className="flex items-center space-x-2.5 overflow-hidden">
+            <div className="w-7 h-7 rounded-lg bg-[#DC2626] flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-950/40">
               <Zap className="w-4 h-4 text-white fill-white" />
             </div>
             {!isCollapsed && (
               <motion.span 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="font-extrabold text-sm tracking-widest uppercase text-white whitespace-nowrap"
+                transition={{ duration: 0.15 }}
+                className="font-extrabold text-xs tracking-wider uppercase text-white whitespace-nowrap"
               >
                 SmartCapture <span className="text-[#DC2626]">AI</span>
               </motion.span>
@@ -99,7 +103,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
           {/* Close button for Mobile screen size */}
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-[#171717] text-[#808080] hover:text-[#FFFFFF] md:hidden focus:outline-none"
+            className="p-1 rounded-lg hover:bg-[#171717] text-[#737373] hover:text-[#FFFFFF] md:hidden focus:outline-none"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />
@@ -109,7 +113,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
           {!isOpen && (
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="hidden md:flex p-1.5 rounded-lg hover:bg-[#171717] text-[#808080] hover:text-[#FFFFFF] focus:outline-none"
+              className="hidden md:flex p-1 rounded-lg hover:bg-[#171717] text-[#737373] hover:text-[#FFFFFF] focus:outline-none"
               title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
             >
               {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -118,80 +122,81 @@ export const Sidebar = ({ isOpen, onClose }) => {
         </div>
 
         {/* Navigation Items list */}
-        <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
-          {links.map((link) => {
-            const Icon = link.icon;
-            const isActive = location.pathname === link.path;
-            
-            return (
-              <NavLink
-                key={link.path}
-                to={link.path}
-                onClick={onClose}
-                className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative ${
-                  isActive
-                    ? 'text-white bg-[#171717]'
-                    : 'text-[#B3B3B3] hover:bg-[#171717]/40 hover:text-white'
-                }`}
-              >
-                {/* Active Accent Left Border Indicator */}
-                {isActive && (
-                  <motion.div
-                    layoutId="active-nav-indicator"
-                    className="absolute left-0 top-3 bottom-3 w-1 bg-[#DC2626] rounded-r-md"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-                
-                <Icon className={`w-5 h-5 mr-3.5 flex-shrink-0 transition-transform group-hover:scale-110 duration-200 ${
-                  isActive ? 'text-[#DC2626]' : 'text-[#808080] group-hover:text-[#B3B3B3]'
-                }`} />
-                {!isCollapsed && <span>{link.name}</span>}
-              </NavLink>
+        <nav className="flex-1 px-2.5 py-4 space-y-1 overflow-y-auto">
+          {menuItems.map((item, idx) => {
+            const Icon = item.icon;
+            const isActive = item.type === 'link' && (
+              location.pathname === item.path || 
+              (item.path === '/summary' && location.pathname === '/summary')
             );
+            
+            const commonClasses = `flex items-center px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative ${
+              isActive
+                ? 'text-white bg-[#171717]'
+                : 'text-[#A3A3A3] hover:bg-[#171717]/40 hover:text-white'
+            }`;
+
+            const iconElement = (
+              <Icon className={`w-[20px] h-[20px] mr-3.5 flex-shrink-0 transition-transform group-hover:scale-105 duration-200 ${
+                isActive ? 'text-[#DC2626]' : 'text-[#737373] group-hover:text-[#A3A3A3]'
+              }`} />
+            );
+
+            if (item.type === 'link') {
+              return (
+                <NavLink
+                  key={idx}
+                  to={item.path}
+                  onClick={onClose}
+                  className={commonClasses}
+                >
+                  {/* Active Accent Left Border Indicator */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="active-nav-indicator"
+                      className="absolute left-0 top-3 bottom-3 w-0.5 bg-[#DC2626]"
+                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                    />
+                  )}
+                  {iconElement}
+                  {!isCollapsed && <span>{item.name}</span>}
+                </NavLink>
+              );
+            } else {
+              return (
+                <button
+                  key={idx}
+                  onClick={item.onClick}
+                  className={`${commonClasses} w-full text-left`}
+                >
+                  {iconElement}
+                  {!isCollapsed && <span>{item.name}</span>}
+                </button>
+              );
+            }
           })}
-
-          <div className="border-t border-[#2B2B2B] my-4" />
-
-          {/* Smart Capture trigger nav */}
-          <a
-            href="/"
-            onClick={handleSmartCaptureFocus}
-            className="flex items-center px-4 py-3 rounded-xl text-sm font-medium text-[#B3B3B3] hover:bg-[#171717]/40 hover:text-white group"
-          >
-            <Sparkles className="w-5 h-5 mr-3.5 flex-shrink-0 text-[#808080] group-hover:text-[#DC2626] transition-colors" />
-            {!isCollapsed && <span>Smart Capture</span>}
-          </a>
-
-          {/* Search Trigger */}
-          <a
-            href="#search"
-            onClick={handleSearchClick}
-            className="flex items-center px-4 py-3 rounded-xl text-sm font-medium text-[#B3B3B3] hover:bg-[#171717]/40 hover:text-white group"
-          >
-            <Search className="w-5 h-5 mr-3.5 flex-shrink-0 text-[#808080] group-hover:text-white transition-colors" />
-            {!isCollapsed && <span>Search</span>}
-          </a>
-
-          {/* Settings Trigger */}
-          <a
-            href="#settings"
-            onClick={handleSettingsClick}
-            className="flex items-center px-4 py-3 rounded-xl text-sm font-medium text-[#B3B3B3] hover:bg-[#171717]/40 hover:text-white group"
-          >
-            <Settings className="w-5 h-5 mr-3.5 flex-shrink-0 text-[#808080] group-hover:text-white transition-colors" />
-            {!isCollapsed && <span>Settings</span>}
-          </a>
         </nav>
 
-        {/* Sidebar Footer */}
-        <div className="p-4 border-t border-[#2B2B2B] text-center flex-shrink-0">
-          {!isCollapsed ? (
-            <p className="text-3xs font-extrabold text-[#808080] uppercase tracking-widest">
-              SaaS AI Engine v2.0
-            </p>
+        {/* Sidebar Footer - User Profile Block */}
+        <div className="p-3 border-t border-[#262626] flex-shrink-0 bg-[#0A0A0A]/50">
+          {isCollapsed ? (
+            <div className="flex justify-center">
+              <div className="w-8 h-8 rounded-full bg-[#171717] border border-[#262626] flex items-center justify-center text-xs font-bold text-white relative">
+                JD
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#0D0D0D]" />
+              </div>
+            </div>
           ) : (
-            <div className="text-xs font-black text-[#DC2626]">AI</div>
+            <div className="flex items-center space-x-3 px-1.5 py-1">
+              <div className="w-8.5 h-8.5 rounded-full bg-[#171717] border border-[#262626] flex items-center justify-center text-xs font-bold text-white relative flex-shrink-0">
+                JD
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#0D0D0D]" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-white truncate leading-none mb-1">John Doe</p>
+                <p className="text-[10px] text-[#737373] truncate leading-none uppercase tracking-wider font-medium">Administrator</p>
+              </div>
+            </div>
           )}
         </div>
       </motion.aside>

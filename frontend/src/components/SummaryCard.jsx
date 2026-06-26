@@ -27,8 +27,8 @@ export const SummaryCard = ({ refreshTrigger }) => {
 
   if (loading && !data) {
     return (
-      <div className="bg-[#171717] border border-[#2B2B2B] rounded-2xl shadow-lg overflow-hidden">
-        <div className="bg-[#101010] px-5.5 py-3.5 border-b border-[#2B2B2B] flex items-center justify-between">
+      <div className="bg-[#171717] border border-[#262626] rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-[#0D0D0D] px-5.5 py-3.5 border-b border-[#262626] flex items-center justify-between">
           <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <Sparkles className="w-4.5 h-4.5 text-[#DC2626]" />
             <span>AI Coach Insights</span>
@@ -45,10 +45,10 @@ export const SummaryCard = ({ refreshTrigger }) => {
   const stats = data?.stats || { pending: 0, completed: 0, total: 0 };
 
   return (
-    <div className="bg-[#171717] border border-[#2B2B2B] rounded-2xl shadow-lg overflow-hidden">
+    <div className="bg-[#171717] border border-[#262626] rounded-2xl shadow-lg overflow-hidden">
       
       {/* Header */}
-      <div className="bg-[#101010] px-5.5 py-3.5 border-b border-[#2B2B2B] flex items-center justify-between">
+      <div className="bg-[#0D0D0D] px-5.5 py-3.5 border-b border-[#262626] flex items-center justify-between">
         <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
           <Sparkles className="w-4.5 h-4.5 text-[#DC2626] animate-pulse" />
           <span>AI Coach Insights</span>
@@ -56,7 +56,7 @@ export const SummaryCard = ({ refreshTrigger }) => {
         <button
           onClick={fetchSummary}
           disabled={loading}
-          className="p-1.5 hover:bg-[#2B2B2B] rounded-lg text-[#808080] hover:text-white transition-colors disabled:opacity-50 focus:outline-none"
+          className="p-1.5 hover:bg-[#262626] rounded-lg text-[#737373] hover:text-white transition-colors disabled:opacity-50 focus:outline-none"
           title="Regenerate Insights"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -70,19 +70,19 @@ export const SummaryCard = ({ refreshTrigger }) => {
             <p className="text-xs text-[#DC2626] font-medium mb-3.5">{error}</p>
             <button
               onClick={fetchSummary}
-              className="px-3.5 py-1.5 border border-[#2B2B2B] hover:border-white bg-[#0F0F0F] text-xs font-bold rounded-xl transition-all"
+              className="px-3.5 py-1.5 border border-[#262626] hover:border-white bg-[#0F0F0F] text-xs font-bold rounded-xl transition-all"
             >
               Retry
             </button>
           </div>
         ) : (
           <>
-            <p className="text-xs leading-relaxed text-[#B3B3B3] italic bg-[#0F0F0F] p-4 rounded-xl border border-[#2B2B2B]/40">
+            <p className="text-xs leading-relaxed text-[#A3A3A3] italic bg-[#0F0F0F] p-4 rounded-xl border border-[#262626]/60">
               "{summary}"
             </p>
             
             {/* Stats list footer */}
-            <div className="flex justify-between items-center text-[10px] pt-3.5 border-t border-[#2B2B2B] text-[#808080] font-extrabold uppercase tracking-wider">
+            <div className="flex justify-between items-center text-[10px] pt-3.5 border-t border-[#262626] text-[#737373] font-extrabold uppercase tracking-wider">
               <span>{stats.pending} Pending</span>
               <span>&bull;</span>
               <span>{stats.completed} Completed</span>

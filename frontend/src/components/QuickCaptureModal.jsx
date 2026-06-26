@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Send } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -54,19 +54,19 @@ export const QuickCaptureModal = () => {
           />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="relative w-full max-w-lg bg-[#171717] border border-[#2B2B2B] rounded-2xl shadow-2xl overflow-hidden z-10 p-5"
+            exit={{ opacity: 0, scale: 0.96 }}
+            className="relative w-full max-w-lg bg-[#171717] border border-[#262626] rounded-2xl shadow-2xl overflow-hidden z-10 p-5 space-y-4"
           >
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center pb-2 border-b border-[#262626]">
               <div className="flex items-center space-x-2">
                 <Sparkles className="w-5 h-5 text-[#DC2626]" />
-                <h2 className="text-sm font-bold uppercase tracking-wider text-white">AI Quick Capture</h2>
+                <h2 className="text-xs font-bold uppercase tracking-widest text-white">AI Quick Capture</h2>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1 rounded-lg hover:bg-[#2B2B2B] text-[#808080] hover:text-white"
+                className="p-1 rounded-lg hover:bg-[#262626] text-[#737373] hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -77,24 +77,24 @@ export const QuickCaptureModal = () => {
                 ref={inputRef}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder="Describe your tasks... (e.g. Call dentist tomorrow at 10 AM, buy groceries, and finalize slides before Friday)"
+                placeholder="Describe what you want to achieve... (e.g. Call dentist tomorrow at 10 AM, buy groceries, and finalize slides before Friday)"
                 rows={4}
                 disabled={isLoading}
-                className="w-full px-4 py-3 rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-white placeholder-[#808080] text-sm focus:outline-none focus:border-[#DC2626] leading-relaxed resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-[#262626] bg-[#0F0F0F] text-white placeholder-[#737373] text-xs focus:outline-none focus:border-[#DC2626] leading-relaxed resize-none transition-all"
               />
 
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 border border-[#2B2B2B] bg-[#171717] text-[#B3B3B3] hover:text-white rounded-xl text-xs font-semibold"
+                  className="px-4 py-2 border border-[#262626] bg-[#171717] text-[#A3A3A3] hover:text-white rounded-xl text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading || !text.trim()}
-                  className="px-4 py-2 border border-[#DC2626] bg-[#DC2626] text-white rounded-xl text-xs font-bold hover:bg-[#EF4444] hover:border-[#EF4444] transition-all flex items-center space-x-1.5 shadow-md shadow-red-950/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 border border-[#DC2626] bg-[#DC2626] text-white rounded-xl text-xs font-bold hover:bg-[#EF4444] hover:border-[#EF4444] transition-all flex items-center space-x-1.5 shadow-md shadow-red-950/20 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                 >
                   <span>Extract Tasks</span>
                 </button>

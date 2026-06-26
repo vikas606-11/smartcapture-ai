@@ -3,8 +3,8 @@ import json
 import hashlib
 from datetime import datetime, timedelta
 from logger import logger
-from ai_parser import get_gemini_client, handle_gemini_exceptions
-import google.generativeai as genai
+from ai_parser import handle_gemini_exceptions
+import services.groq_service as groq_service
 
 # In-memory coach insights cache
 COACH_CACHE = {
@@ -142,49 +142,9 @@ def calculate_local_fallback_insights(tasks, overdue_count, due_today_count, due
 @handle_gemini_exceptions
 def _generate_coach_insights_api_call(tasks_json, stats_summary, current_time_str):
     """
-    Calls Gemini API to generate structured coaching insights.
+    Calls Groq API to generate structured coaching insights.
     """
-    if not get_gemini_client():
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        
-    prompt = (
-        f"You are a premium AI productivity coach. Analyze the user's workspace tasks and stats.\n\n"
-        f"The current local date and time is: {current_time_str}.\n"
-        f"Here is the statistics overview: {stats_summary}\n\n"
-        f"And here is the raw JSON list of tasks in the database:\n"
-        f"{tasks_json}\n\n"
-        f"Your task is to analyze these tasks and generate a personalized, motivating daily productivity coaching briefing.\n\n"
-        f"You MUST return a JSON object matching this exact schema:\n"
-        f"{{\n"
-        f"  \"daily_briefing\": \"Motivating paragraphs summarizing the active tasks, overdue items, due today, highest priority task, estimated workload, and recommended focus.\",\n"
-        f"  \"recommended_order\": [\n"
-        f"    {{\n"
-        f"      \"id\": 12,\n"
-        f"      \"title\": \"Cloud Security Assignment\",\n"
-        f"      \"reason\": \"High priority and due today. Best done early in the morning when focus is highest.\"\n"
-        f"    }}\n"
-        f"  ],\n"
-        f"  \"workload_estimation_today\": 4.5,\n"
-        f"  \"workload_estimation_week\": 12.0,\n"
-        f"  \"smart_suggestions\": [\n"
-        f"    \"Finish high-priority work first.\",\n"
-        f"    \"Move overdue tasks to today's schedule.\"\n"
-        f"  ],\n"
-        f"  \"weekly_insights\": {{\n"
-        f"    \"most_productive_category\": \"Work\",\n"
-        f"    \"most_delayed_category\": \"Study\",\n"
-        f"    \"improvement_trend\": \"improving\"\n"
-        f"  }}\n"
-        f"}}\n"
-        f"Provide NO conversational prologue or wrap-up. Return ONLY raw valid JSON."
-    )
-    
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    response = model.generate_content(
-        prompt,
-        generation_config={"response_mime_type": "application/json"}
-    )
-    return response.text.strip()
+    return groq_service.generate_coach_insights(tasks_json, stats_summary, current_time_str)
 
 def get_coaching_insights(tasks, force_refresh=False):
     """

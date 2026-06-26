@@ -119,16 +119,12 @@ class TestNLPPipeline(unittest.TestCase):
         # Check task 4
         self.assertEqual(tasks[3]["category"], "Travel")
 
-    @patch('ai_parser.get_gemini_client')
-    @patch('google.generativeai.GenerativeModel')
-    @patch('ai_parser.os.getenv')
-    def test_gemini_missing_api_key(self, mock_getenv, mock_model_class, mock_get_client):
-        """Test that missing API key raises GeminiApiKeyError."""
-        mock_getenv.return_value = "your_gemini_api_key_here"
-        mock_get_client.return_value = False
-        
-        with self.assertRaises(GeminiApiKeyError):
-            parse_natural_language("Finish report tomorrow")
+    def test_offline_execution_no_api_key(self):
+        """Test that the NLP pipeline successfully processes text without requiring API keys."""
+        res = parse_natural_language("Finish report tomorrow")
+        self.assertIn("tasks", res)
+        self.assertTrue(len(res["tasks"]) > 0)
+        self.assertEqual(res["tasks"][0]["title"], "Finish report")
 
     @patch('ai_parser._parse_natural_language_api_call')
     @patch('ai_parser.get_gemini_client')

@@ -12,35 +12,20 @@ export const Navbar = ({ onToggleSidebar }) => {
     setCurrentDate(new Date().toLocaleDateString('en-US', options));
   }, []);
 
-  const getPageTitle = (path) => {
-    switch (path) {
-      case '/':
-        return 'Analytics Dashboard';
-      case '/tasks':
-        return 'Workspace Tasks';
-      case '/notes':
-        return 'Notes Ledger';
-      case '/summary':
-        return 'AI Coach Dashboard';
-      default:
-        return 'SmartCapture Platform';
-    }
-  };
-
   const handleNotificationClick = () => {
     toast('No new notifications.', {
       icon: '🔔',
       style: {
         background: '#171717',
         color: '#FFFFFF',
-        border: '1px solid #2B2B2B',
+        border: '1px solid #262626',
         borderRadius: '12px',
+        fontSize: '13px',
       }
     });
   };
 
   const handleQuickCapture = () => {
-    // Open Quick Capture modal
     window.dispatchEvent(new Event('open-quick-capture'));
   };
 
@@ -49,81 +34,73 @@ export const Navbar = ({ onToggleSidebar }) => {
   };
 
   return (
-    <header className="sticky top-0 z-45 flex items-center justify-between w-full h-16 px-6 bg-[#0D0D0D]/90 border-b border-[#2B2B2B] backdrop-blur-md transition-colors duration-300">
+    <header className="sticky top-0 z-40 flex items-center justify-between w-full h-14 px-6 bg-[#111111] border-b border-[#262626] transition-colors duration-300">
       
-      {/* Left side info */}
+      {/* Left section: wordmark + version chip + date */}
       <div className="flex items-center space-x-4">
         {/* Toggle Sidebar Button for Mobile */}
         <button
           onClick={onToggleSidebar}
-          className="p-2 rounded-xl md:hidden hover:bg-[#171717] text-[#B3B3B3] hover:text-[#FFFFFF] transition-colors focus:outline-none"
+          className="p-1.5 rounded-lg md:hidden hover:bg-[#171717] text-[#A3A3A3] hover:text-[#FFFFFF] transition-colors focus:outline-none"
           aria-label="Toggle Sidebar"
         >
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Page Title */}
-        <h1 className="text-sm font-bold tracking-wider uppercase text-white hidden md:block">
-          {getPageTitle(location.pathname)}
-        </h1>
-        
-        {/* Mobile Header Logo */}
-        <div className="flex items-center space-x-2 md:hidden">
-          <div className="w-6 h-6 rounded-md bg-[#DC2626] flex items-center justify-center">
-            <span className="text-white text-xs font-black">AI</span>
-          </div>
-          <span className="font-extrabold text-white tracking-widest text-xs uppercase">
-            SmartCapture
+        {/* Wordmark and version chip */}
+        <div className="flex items-center space-x-2.5">
+          <span className="font-extrabold text-white tracking-widest text-xs uppercase whitespace-nowrap">
+            SmartCapture <span className="text-[#DC2626]">AI</span>
+          </span>
+          <span className="px-1.5 py-0.25 text-[9px] bg-[#171717] rounded border border-[#262626] text-[#737373] font-bold">
+            v2.1
           </span>
         </div>
+
+        {/* Date Display */}
+        <span className="hidden lg:inline text-xs text-[#737373] font-medium pl-2 border-l border-[#262626]">
+          {currentDate}
+        </span>
       </div>
 
-      {/* Middle Global Search trigger */}
-      <div className="hidden md:flex flex-1 max-w-md mx-6">
+      {/* Center: Global Search trigger */}
+      <div className="flex-1 max-w-md mx-6">
         <button
           onClick={handleSearchTrigger}
-          className="w-full flex items-center space-x-2.5 px-3 py-1.8 rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-[#808080] hover:text-[#B3B3B3] hover:border-[#808080]/30 transition-all text-xs font-medium text-left focus:outline-none"
+          className="w-full flex items-center space-x-2.5 px-3.5 py-2 rounded-lg border border-[#262626] bg-[#0F0F0F] text-[#737373] hover:text-[#A3A3A3] hover:border-[#737373]/30 transition-all text-xs font-medium text-left focus:outline-none"
         >
-          <Search className="w-4 h-4 text-[#808080]" />
-          <span>Search tasks, categories, or tags... (Ctrl+K)</span>
-          <span className="ml-auto px-1.5 py-0.5 text-4xs bg-[#171717] rounded border border-[#2B2B2B] text-[#808080]">⌘K</span>
+          <Search className="w-4 h-4 text-[#737373]" />
+          <span className="text-xs">Search anything...</span>
+          <span className="ml-auto px-1.5 py-0.5 text-[9px] bg-[#171717] rounded border border-[#262626] text-[#737373] font-bold">⌘K</span>
         </button>
       </div>
 
       {/* Right side items */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-3.5">
         
-        {/* Date Display */}
-        <div className="hidden lg:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-[#B3B3B3] text-xs font-bold">
-          <Calendar className="w-3.5 h-3.5 text-[#808080]" />
-          <span>{currentDate}</span>
-        </div>
-
-        {/* Quick Capture Button */}
+        {/* Quick Capture Button (Red CTA) */}
         <button
           onClick={handleQuickCapture}
-          className="px-3.5 py-1.8 border border-[#DC2626] bg-[#050505] text-xs font-bold text-white rounded-xl hover:bg-[#DC2626] transition-all flex items-center gap-1.5 shadow-md shadow-red-950/20"
+          className="px-3 py-1.5 bg-[#DC2626] text-white rounded-lg text-xs font-bold hover:bg-[#EF4444] transition-all flex items-center gap-1.5 active:scale-95 duration-150"
         >
-          <Sparkles className="w-3.5 h-3.5 text-white" />
+          <Sparkles className="w-4 h-4 text-white" />
           <span className="hidden sm:inline">Quick Capture</span>
         </button>
 
         {/* Notification Icon */}
         <button
           onClick={handleNotificationClick}
-          className="p-2.5 rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-[#B3B3B3] hover:text-white hover:border-[#808080]/30 transition-all relative focus:outline-none"
+          className="p-2 rounded-lg border border-[#262626] bg-[#0F0F0F] text-[#A3A3A3] hover:text-white hover:border-[#737373]/30 transition-all relative focus:outline-none"
           aria-label="View notifications"
         >
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#DC2626] ring-1 ring-[#0F0F0F]" />
+          <Bell className="w-4.5 h-4.5" />
+          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#DC2626] ring-1 ring-[#111111]" />
         </button>
 
         {/* User Profile Avatar */}
-        <div className="flex items-center space-x-2 pl-1 border-l border-[#2B2B2B]">
-          <div className="w-8 h-8 rounded-full border border-[#2B2B2B] bg-[#171717] flex items-center justify-center text-xs font-black text-white hover:border-[#DC2626] cursor-pointer transition-all relative">
-            JD
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#0D0D0D]" />
-          </div>
+        <div className="w-8 h-8 rounded-full border border-[#262626] bg-[#171717] flex items-center justify-center text-xs font-bold text-white hover:border-[#DC2626] cursor-pointer transition-all relative">
+          JD
+          <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 border-2 border-[#111111]" />
         </div>
 
       </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit2, Trash2, Check, X, Calendar, Clock, MoreVertical, CheckSquare } from 'lucide-react';
+import { Edit2, Trash2, Check, X, Calendar, Clock, MoreVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
@@ -146,20 +146,20 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
   };
 
   const categoryColors = {
-    Work: 'border-blue-900/60 bg-blue-950/20 text-blue-400',
-    Study: 'border-purple-900/60 bg-purple-950/20 text-purple-400',
-    Personal: 'border-amber-950/80 bg-amber-950/10 text-amber-400',
-    Shopping: 'border-pink-900/60 bg-pink-950/20 text-pink-400',
-    Health: 'border-emerald-900/60 bg-emerald-950/20 text-emerald-400',
-    Finance: 'border-yellow-900/60 bg-yellow-950/10 text-yellow-450',
-    Travel: 'border-cyan-900/60 bg-cyan-950/20 text-cyan-400',
-    Other: 'border-[#2B2B2B] bg-[#101010] text-[#B3B3B3]',
+    Work: 'border-blue-900/40 bg-blue-950/20 text-blue-400',
+    Study: 'border-purple-900/40 bg-purple-950/20 text-purple-400',
+    Personal: 'border-amber-950/40 bg-amber-950/10 text-amber-400',
+    Shopping: 'border-pink-900/40 bg-pink-950/20 text-pink-400',
+    Health: 'border-emerald-900/40 bg-emerald-950/20 text-emerald-400',
+    Finance: 'border-yellow-900/40 bg-yellow-950/10 text-yellow-550',
+    Travel: 'border-cyan-900/40 bg-cyan-950/20 text-cyan-400',
+    Other: 'border-[#262626] bg-[#101010] text-[#A3A3A3]',
   };
 
   const priorityColors = {
-    High: 'border-[#DC2626]/40 bg-red-950/20 text-[#EF4444]',
-    Medium: 'border-[#F59E0B]/40 bg-amber-950/20 text-[#F59E0B]',
-    Low: 'border-[#2B2B2B] bg-[#101010] text-[#808080]',
+    High: 'border-red-950/40 bg-red-950/20 text-[#EF4444]',
+    Medium: 'border-amber-950/40 bg-amber-950/10 text-[#F59E0B]',
+    Low: 'border-[#262626] bg-[#0F0F0F] text-[#737373]',
   };
 
   const handleStatusToggle = () => {
@@ -205,9 +205,9 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
       onClick={handleCardClick}
       className={`group relative p-5 bg-[#171717] border rounded-2xl cursor-pointer transition-all duration-300 ${
         isCompleted
-          ? 'border-emerald-900/20 bg-emerald-950/5'
-          : 'border-[#2B2B2B] hover:border-[#DC2626]/60 shadow-lg shadow-black/35 hover:shadow-[#DC2626]/5'
-      } ${isExpanded ? 'border-[#DC2626]/60 shadow-[#DC2626]/5' : ''}`}
+          ? 'border-emerald-950/30 bg-emerald-950/5'
+          : 'border-[#262626] hover:border-[#DC2626]/50 shadow-lg shadow-black/35 hover:shadow-[#DC2626]/5'
+      } ${isExpanded ? 'border-[#DC2626]/50 shadow-[#DC2626]/5' : ''}`}
     >
       {/* Confirm deletion overlay */}
       <AnimatePresence>
@@ -216,7 +216,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-10 flex flex-col items-center justify-center p-4 bg-[#171717]/95 rounded-2xl border border-[#2B2B2B]"
+            className="absolute inset-0 z-10 flex flex-col items-center justify-center p-4 bg-[#171717]/95 rounded-2xl border border-[#262626]"
             onClick={(e) => e.stopPropagation()}
           >
             <p className="text-xs font-semibold text-white mb-3 text-center">
@@ -238,7 +238,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
                   e.stopPropagation();
                   setShowConfirmDelete(false);
                 }}
-                className="px-3.5 py-1.5 bg-[#0F0F0F] border border-[#2B2B2B] text-[#B3B3B3] hover:text-white rounded-xl text-3xs font-bold transition-all"
+                className="px-3.5 py-1.5 bg-[#0F0F0F] border border-[#262626] text-[#A3A3A3] hover:text-white rounded-xl text-3xs font-bold transition-all"
               >
                 Cancel
               </button>
@@ -250,7 +250,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
       {isEditing ? (
         /* Edit Mode View */
         <div className="space-y-4" onClick={(e) => e.stopPropagation()}>
-          <div className="flex justify-between items-center pb-2 border-b border-[#2B2B2B]">
+          <div className="flex justify-between items-center pb-2 border-b border-[#262626]">
             <span className="text-xs font-bold text-[#DC2626] tracking-wider uppercase">Edit Task Parameters</span>
             <div className="flex space-x-2">
               <button
@@ -268,7 +268,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
                   e.stopPropagation();
                   handleCancel();
                 }}
-                className="p-1.5 bg-[#2B2B2B] text-[#B3B3B3] hover:text-white rounded-lg transition-all"
+                className="p-1.5 bg-[#262626] text-[#A3A3A3] hover:text-white rounded-lg transition-all"
                 title="Cancel"
               >
                 <X className="w-4 h-4" />
@@ -278,32 +278,32 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
 
           <div className="space-y-3">
             <div>
-              <label className="block text-4xs font-extrabold uppercase tracking-widest text-[#808080] mb-1">Title</label>
+              <label className="block text-[9px] font-extrabold uppercase tracking-wider text-[#737373] mb-1">Title</label>
               <input
                 type="text"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="w-full px-3 py-1.8 text-xs rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-white focus:outline-none focus:border-[#DC2626] transition-all"
+                className="w-full px-3 py-1.8 text-xs rounded-xl border border-[#262626] bg-[#0F0F0F] text-white focus:outline-none focus:border-[#DC2626] transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-4xs font-extrabold uppercase tracking-widest text-[#808080] mb-1">Description</label>
+              <label className="block text-[9px] font-extrabold uppercase tracking-wider text-[#737373] mb-1">Description</label>
               <textarea
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
                 rows={2}
-                className="w-full px-3 py-1.8 text-xs rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-white focus:outline-none focus:border-[#DC2626] transition-all resize-none"
+                className="w-full px-3 py-1.8 text-xs rounded-xl border border-[#262626] bg-[#0F0F0F] text-white focus:outline-none focus:border-[#DC2626] transition-all resize-none"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-4xs font-extrabold uppercase tracking-widest text-[#808080] mb-1">Category</label>
+                <label className="block text-[9px] font-extrabold uppercase tracking-wider text-[#737373] mb-1">Category</label>
                 <select
                   value={editCategory}
                   onChange={(e) => setEditCategory(e.target.value)}
-                  className="w-full px-3 py-1.8 text-xs rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-white focus:outline-none focus:border-[#DC2626]"
+                  className="w-full px-3 py-1.8 text-xs rounded-xl border border-[#262626] bg-[#0F0F0F] text-white focus:outline-none focus:border-[#DC2626]"
                 >
                   <option value="Work">Work</option>
                   <option value="Study">Study</option>
@@ -317,11 +317,11 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
               </div>
 
               <div>
-                <label className="block text-4xs font-extrabold uppercase tracking-widest text-[#808080] mb-1">Priority</label>
+                <label className="block text-[9px] font-extrabold uppercase tracking-wider text-[#737373] mb-1">Priority</label>
                 <select
                   value={editPriority}
                   onChange={(e) => setEditPriority(e.target.value)}
-                  className="w-full px-3 py-1.8 text-xs rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-white focus:outline-none focus:border-[#DC2626]"
+                  className="w-full px-3 py-1.8 text-xs rounded-xl border border-[#262626] bg-[#0F0F0F] text-white focus:outline-none focus:border-[#DC2626]"
                 >
                   <option value="High">High</option>
                   <option value="Medium">Medium</option>
@@ -332,35 +332,35 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
 
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-2">
-                <label className="block text-4xs font-extrabold uppercase tracking-widest text-[#808080] mb-1">Tags (separated by comma)</label>
+                <label className="block text-[9px] font-extrabold uppercase tracking-wider text-[#737373] mb-1">Tags (comma split)</label>
                 <input
                   type="text"
                   value={editTags}
                   onChange={(e) => setEditTags(e.target.value)}
-                  className="w-full px-3 py-1.8 text-xs rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-white focus:outline-none focus:border-[#DC2626]"
+                  className="w-full px-3 py-1.8 text-xs rounded-xl border border-[#262626] bg-[#0F0F0F] text-white focus:outline-none focus:border-[#DC2626]"
                   placeholder="tag1, tag2"
                 />
               </div>
 
               <div>
-                <label className="block text-4xs font-extrabold uppercase tracking-widest text-[#808080] mb-1">Due Time</label>
+                <label className="block text-[9px] font-extrabold uppercase tracking-wider text-[#737373] mb-1">Due Time</label>
                 <input
                   type="text"
                   value={editDueTime}
                   onChange={(e) => setEditDueTime(e.target.value)}
-                  className="w-full px-3 py-1.8 text-xs rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-white focus:outline-none"
+                  className="w-full px-3 py-1.8 text-xs rounded-xl border border-[#262626] bg-[#0F0F0F] text-white focus:outline-none focus:border-[#DC2626]"
                   placeholder="3:00 PM"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-4xs font-extrabold uppercase tracking-widest text-[#808080] mb-1">Due Date</label>
+              <label className="block text-[9px] font-extrabold uppercase tracking-wider text-[#737373] mb-1">Due Date</label>
               <input
                 type="text"
                 value={editDueDate}
                 onChange={(e) => setEditDueDate(e.target.value)}
-                className="w-full px-3 py-1.8 text-xs rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-white focus:outline-none"
+                className="w-full px-3 py-1.8 text-xs rounded-xl border border-[#262626] bg-[#0F0F0F] text-white focus:outline-none focus:border-[#DC2626]"
                 placeholder="Tomorrow or YYYY-MM-DD"
               />
             </div>
@@ -381,7 +381,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
                 className={`w-5 h-5 flex items-center justify-center rounded-md border transition-all duration-200 ${
                   isCompleted
                     ? 'bg-[#22C55E] border-[#22C55E] text-white'
-                    : 'border-[#2B2B2B] hover:border-[#DC2626] bg-[#0F0F0F]'
+                    : 'border-[#262626] hover:border-[#DC2626] bg-[#0F0F0F]'
                 }`}
                 title={isCompleted ? 'Mark as Pending' : 'Mark as Completed'}
               >
@@ -396,8 +396,8 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
                 {/* Title & Badge row */}
                 <div className="flex flex-wrap items-center gap-2">
                   <h3
-                    className={`text-sm font-semibold leading-tight break-words transition-all duration-300 ${
-                      isCompleted ? 'line-through text-[#808080]' : 'text-white'
+                    className={`text-sm font-semibold leading-tight break-words transition-all duration-350 ${
+                      isCompleted ? 'line-through text-[#737373]' : 'text-white'
                     }`}
                   >
                     {task.title}
@@ -405,7 +405,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
                   
                   {/* Category Badge */}
                   <span
-                    className={`px-2 py-0.5 text-4xs font-bold uppercase tracking-wider rounded-md border ${
+                    className={`px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md border ${
                       categoryColors[task.category] || categoryColors.Other
                     }`}
                   >
@@ -414,7 +414,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
 
                   {/* Priority Badge */}
                   <span
-                    className={`px-2 py-0.5 text-4xs font-bold uppercase tracking-wider rounded-md border ${
+                    className={`px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md border ${
                       priorityColors[task.priority] || priorityColors.Medium
                     }`}
                   >
@@ -426,7 +426,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
                 <div className="relative" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => setShowDropdown(!showDropdown)}
-                    className="p-1 rounded-lg hover:bg-[#2B2B2B] text-[#808080] hover:text-white transition-colors focus:outline-none"
+                    className="p-1 rounded-lg hover:bg-[#262626] text-[#737373] hover:text-white transition-colors focus:outline-none"
                     aria-label="More actions"
                   >
                     <MoreVertical className="w-4 h-4" />
@@ -435,29 +435,29 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
                   <AnimatePresence>
                     {showDropdown && (
                       <>
-                        <div className="fixed inset-0 z-15" onClick={() => setShowDropdown(false)} />
+                        <div className="fixed inset-0 z-10" onClick={() => setShowDropdown(false)} />
                         <motion.div
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.95 }}
-                          className="absolute right-0 mt-1 w-28 bg-[#171717] border border-[#2B2B2B] rounded-xl shadow-2xl overflow-hidden z-20"
+                          className="absolute right-0 mt-1 w-28 bg-[#171717] border border-[#262626] rounded-xl shadow-2xl overflow-hidden z-20"
                         >
                           <button
                             onClick={() => {
                               setIsEditing(true);
                               setShowDropdown(false);
                             }}
-                            className="w-full flex items-center px-3.5 py-2.5 text-4xs font-bold uppercase text-[#B3B3B3] hover:text-white hover:bg-[#2B2B2B] transition-colors border-b border-[#2B2B2B]"
+                            className="w-full flex items-center px-3.5 py-2 text-[10px] font-extrabold uppercase text-[#A3A3A3] hover:text-white hover:bg-[#262626] transition-colors border-b border-[#262626]"
                           >
-                            <Edit2 className="w-3.5 h-3.5 mr-2 text-[#808080]" />
-                            Edit Task
+                            <Edit2 className="w-3.5 h-3.5 mr-2 text-[#737373]" />
+                            Edit
                           </button>
                           <button
                             onClick={() => {
                               setShowConfirmDelete(true);
                               setShowDropdown(false);
                             }}
-                            className="w-full flex items-center px-3.5 py-2.5 text-4xs font-bold uppercase text-[#DC2626] hover:bg-red-950/20 transition-colors"
+                            className="w-full flex items-center px-3.5 py-2 text-[10px] font-extrabold uppercase text-[#DC2626] hover:bg-red-950/20 transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5 mr-2 text-[#DC2626]" />
                             Delete
@@ -474,7 +474,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
               {task.description && (
                 <p
                   className={`text-xs mb-3 break-words whitespace-pre-wrap leading-relaxed ${
-                    isCompleted ? 'text-[#808080]' : 'text-[#B3B3B3]'
+                    isCompleted ? 'text-[#737373]' : 'text-[#A3A3A3]'
                   }`}
                 >
                   {task.description}
@@ -486,7 +486,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
                 
                 {/* Due Date */}
                 {task.due_date && (
-                  <div className="flex items-center text-4xs font-medium text-[#808080]">
+                  <div className="flex items-center text-[10px] font-bold text-[#737373] uppercase tracking-wider">
                     <Calendar className="w-3.5 h-3.5 mr-1" />
                     <span>{task.due_date}</span>
                   </div>
@@ -494,7 +494,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
 
                 {/* Due Time */}
                 {task.due_time && (
-                  <div className="flex items-center text-4xs font-medium text-[#808080]">
+                  <div className="flex items-center text-[10px] font-bold text-[#737373] uppercase tracking-wider">
                     <Clock className="w-3.5 h-3.5 mr-1" />
                     <span>{task.due_time}</span>
                   </div>
@@ -506,7 +506,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
                     {task.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-0.5 rounded-lg bg-[#0F0F0F] border border-[#2B2B2B] text-4xs font-semibold text-[#808080] group-hover:text-[#B3B3B3] transition-colors"
+                        className="px-2 py-0.5 rounded-lg bg-[#0F0F0F] border border-[#262626] text-[10px] font-semibold text-[#737373] group-hover:text-[#A3A3A3] transition-colors"
                       >
                         #{tag}
                       </span>
@@ -526,33 +526,32 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mt-4 pt-4 border-t border-[#2B2B2B] space-y-4 cursor-default"
+                className="mt-4 pt-4 border-t border-[#262626] space-y-4 cursor-default"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Quick Actions Panel */}
                 <div className="space-y-2">
-                  <h4 className="text-3xs font-extrabold text-[#808080] uppercase tracking-wider">Quick Actions</h4>
+                  <h4 className="text-[10px] font-extrabold text-[#737373] uppercase tracking-wider">Quick Actions</h4>
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={handleDuplicate}
-                      className="px-2.5 py-1 rounded-xl bg-[#0F0F0F] border border-[#2B2B2B] text-4xs font-bold uppercase text-[#B3B3B3] hover:text-white hover:border-[#DC2626]/40 transition-all"
+                      className="px-2.5 py-1 rounded-xl bg-[#0F0F0F] border border-[#262626] text-[10px] font-bold uppercase text-[#A3A3A3] hover:text-white hover:border-[#DC2626]/40 transition-all"
                     >
                       Duplicate
                     </button>
                     <button
                       onClick={handleCopyLink}
-                      className="px-2.5 py-1 rounded-xl bg-[#0F0F0F] border border-[#2B2B2B] text-4xs font-bold uppercase text-[#B3B3B3] hover:text-white hover:border-[#DC2626]/40 transition-all"
+                      className="px-2.5 py-1 rounded-xl bg-[#0F0F0F] border border-[#262626] text-[10px] font-bold uppercase text-[#A3A3A3] hover:text-white hover:border-[#DC2626]/40 transition-all"
                     >
                       Copy Link
                     </button>
                     
-                    {/* Category shift dropdown */}
-                    <div className="flex items-center space-x-1.5 bg-[#0F0F0F] border border-[#2B2B2B] rounded-xl px-2 py-0.5">
-                      <span className="text-4xs text-[#808080] uppercase font-bold">Shift:</span>
+                    <div className="flex items-center space-x-1.5 bg-[#0F0F0F] border border-[#262626] rounded-xl px-2 py-0.5">
+                      <span className="text-[9px] text-[#737373] uppercase font-bold">Shift:</span>
                       <select
                         value={task.category}
                         onChange={(e) => handleCategoryChange(e, e.target.value)}
-                        className="bg-transparent text-4xs font-bold uppercase text-[#B3B3B3] hover:text-white focus:outline-none cursor-pointer"
+                        className="bg-transparent text-[9px] font-bold uppercase text-[#A3A3A3] hover:text-white focus:outline-none cursor-pointer"
                       >
                         {['Work', 'Study', 'Personal', 'Shopping', 'Health', 'Finance', 'Travel', 'Other'].map(cat => (
                           <option key={cat} value={cat} className="bg-[#171717]">{cat}</option>
@@ -564,9 +563,9 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
 
                 {/* Suggested Related Tasks */}
                 <div className="space-y-2">
-                  <h4 className="text-3xs font-extrabold text-[#808080] uppercase tracking-wider">Suggested Related Tasks</h4>
+                  <h4 className="text-[10px] font-extrabold text-[#737373] uppercase tracking-wider">Suggested Related Tasks</h4>
                   {relatedTasks.length === 0 ? (
-                    <p className="text-4xs text-[#808080] italic">No related tasks found.</p>
+                    <p className="text-[11px] text-[#737373] italic">No related tasks found.</p>
                   ) : (
                     <div className="space-y-1">
                       {relatedTasks.map(t => (
@@ -575,10 +574,10 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
                           onClick={() => {
                             window.location.href = `/tasks?search=${encodeURIComponent(t.title)}`;
                           }}
-                          className="w-full flex items-center justify-between p-2 rounded-lg bg-[#0F0F0F] hover:bg-[#2B2B2B]/35 border border-[#2B2B2B] text-left text-xs text-[#B3B3B3] hover:text-white transition-all"
+                          className="w-full flex items-center justify-between p-2 rounded-lg bg-[#0F0F0F] hover:bg-[#2B2B2B]/35 border border-[#262626] text-left text-xs text-[#A3A3A3] hover:text-white transition-all"
                         >
                           <span className="truncate mr-2 text-xs">{t.title}</span>
-                          <span className="text-5xs px-1.5 py-0.25 rounded border border-[#2B2B2B] bg-[#171717]">{t.category}</span>
+                          <span className="text-[9px] px-1.5 py-0.25 rounded border border-[#262626] bg-[#171717]">{t.category}</span>
                         </button>
                       ))}
                     </div>
@@ -587,9 +586,9 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
 
                 {/* Recently Accessed Activity Log */}
                 <div className="space-y-2">
-                  <h4 className="text-3xs font-extrabold text-[#808080] uppercase tracking-wider">Recent Activity Log</h4>
+                  <h4 className="text-[10px] font-extrabold text-[#737373] uppercase tracking-wider">Recent Activity Log</h4>
                   {recentAccessedList.length <= 1 ? (
-                    <p className="text-4xs text-[#808080] italic">No recent history.</p>
+                    <p className="text-[11px] text-[#737373] italic">No recent history.</p>
                   ) : (
                     <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
                       {recentAccessedList.filter(t => t.id !== task.id).slice(0, 5).map(t => (
@@ -598,7 +597,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }) => {
                           onClick={() => {
                             window.location.href = `/tasks?search=${encodeURIComponent(t.title)}`;
                           }}
-                          className="px-2 py-0.5 rounded-lg bg-[#0F0F0F] border border-[#2B2B2B]/60 text-5xs text-[#808080] hover:text-white hover:border-[#808080]/30 transition-all truncate max-w-[120px]"
+                          className="px-2 py-0.5 rounded-lg bg-[#0F0F0F] border border-[#262626] text-[10px] text-[#737373] hover:text-white hover:border-[#808080]/30 transition-all truncate max-w-[120px]"
                           title={t.title}
                         >
                           {t.title}

@@ -27,7 +27,7 @@ export const ProductivityCard = ({ refreshTrigger }) => {
 
   if (loading && !data) {
     return (
-      <div className="bg-[#171717] border border-[#2B2B2B] rounded-2xl p-5 shadow-sm flex items-center justify-center min-h-[220px]">
+      <div className="bg-[#171717] border border-[#262626] rounded-2xl p-5 shadow-sm flex items-center justify-center min-h-[220px]">
         <LoadingSpinner text="Analyzing stats..." />
       </div>
     );
@@ -39,7 +39,6 @@ export const ProductivityCard = ({ refreshTrigger }) => {
   const pending = data?.pending || 0;
   const categories = data?.by_category || {};
 
-  // Score status colors
   let scoreColor = 'text-[#DC2626]';
   let strokeColor = 'stroke-[#DC2626]';
   let progressBg = 'bg-[#DC2626]';
@@ -59,7 +58,7 @@ export const ProductivityCard = ({ refreshTrigger }) => {
   const strokeDashoffset = circumference - (score / 100) * circumference;
 
   return (
-    <div className="bg-[#171717] border border-[#2B2B2B] rounded-2xl p-5 shadow-lg">
+    <div className="bg-[#171717] border border-[#262626] rounded-2xl p-5 shadow-lg">
       
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
@@ -69,7 +68,7 @@ export const ProductivityCard = ({ refreshTrigger }) => {
         </h3>
         <button
           onClick={fetchProductivity}
-          className="p-1.5 hover:bg-[#2B2B2B] rounded-lg text-[#808080] hover:text-white transition-colors focus:outline-none"
+          className="p-1.5 hover:bg-[#262626] rounded-lg text-[#737373] hover:text-white transition-colors focus:outline-none"
           title="Recalculate Score"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -81,7 +80,7 @@ export const ProductivityCard = ({ refreshTrigger }) => {
           <p className="text-xs text-[#DC2626] font-medium mb-3">{error}</p>
           <button
             onClick={fetchProductivity}
-            className="px-3.5 py-1.5 border border-[#2B2B2B] hover:border-white bg-[#0F0F0F] text-xs font-bold rounded-xl transition-all"
+            className="px-3.5 py-1.5 border border-[#262626] hover:border-white bg-[#0F0F0F] text-xs font-bold rounded-xl transition-all"
           >
             Retry
           </button>
@@ -97,7 +96,7 @@ export const ProductivityCard = ({ refreshTrigger }) => {
                   cx="40"
                   cy="40"
                   r={radius}
-                  className="stroke-[#2B2B2B] fill-transparent"
+                  className="stroke-[#262626] fill-transparent"
                   strokeWidth="6"
                 />
                 <circle
@@ -120,27 +119,27 @@ export const ProductivityCard = ({ refreshTrigger }) => {
 
             {/* Counts grid */}
             <div className="flex-1 grid grid-cols-3 gap-2">
-              <div className="text-center p-2 rounded-xl bg-[#0F0F0F] border border-[#2B2B2B]">
+              <div className="text-center p-2 rounded-xl bg-[#0F0F0F] border border-[#262626]">
                 <span className="block text-sm font-bold text-white">
                   {total}
                 </span>
-                <span className="text-5xs font-bold text-[#808080] uppercase tracking-wider">
+                <span className="text-[9px] font-bold text-[#737373] uppercase tracking-wider">
                   Total
                 </span>
               </div>
-              <div className="text-center p-2 rounded-xl bg-[#0F0F0F] border border-[#2B2B2B]">
+              <div className="text-center p-2 rounded-xl bg-[#0F0F0F] border border-[#262626]">
                 <span className="block text-sm font-bold text-[#22C55E]">
                   {completed}
                 </span>
-                <span className="text-5xs font-bold text-[#22C55E]/80 uppercase tracking-wider">
+                <span className="text-[9px] font-bold text-[#22C55E]/80 uppercase tracking-wider">
                   Done
                 </span>
               </div>
-              <div className="text-center p-2 rounded-xl bg-[#0F0F0F] border border-[#2B2B2B]">
+              <div className="text-center p-2 rounded-xl bg-[#0F0F0F] border border-[#262626]">
                 <span className="block text-sm font-bold text-[#F59E0B]">
                   {pending}
                 </span>
-                <span className="text-5xs font-bold text-[#F59E0B]/80 uppercase tracking-wider">
+                <span className="text-[9px] font-bold text-[#F59E0B]/80 uppercase tracking-wider">
                   Open
                 </span>
               </div>
@@ -149,8 +148,8 @@ export const ProductivityCard = ({ refreshTrigger }) => {
 
           {/* Breakdown table */}
           {Object.keys(categories).length > 0 && (
-            <div className="pt-4 border-t border-[#2B2B2B]">
-              <h4 className="text-3xs font-extrabold text-[#808080] uppercase tracking-widest mb-3">
+            <div className="pt-4 border-t border-[#262626]">
+              <h4 className="text-[10px] font-extrabold text-[#737373] uppercase tracking-wider mb-3">
                 Categories Breakdown
               </h4>
               <div className="space-y-2.5">
@@ -158,12 +157,12 @@ export const ProductivityCard = ({ refreshTrigger }) => {
                   const catPercent = counts.total > 0 ? Math.round((counts.completed / counts.total) * 100) : 0;
                   return (
                     <div key={cat} className="flex items-center justify-between text-xs">
-                      <span className="font-medium text-[#B3B3B3]">{cat}</span>
+                      <span className="font-medium text-[#A3A3A3]">{cat}</span>
                       <div className="flex items-center space-x-3">
                         <span className="font-bold text-[#FFFFFF]">
                           {counts.completed}/{counts.total} ({catPercent}%)
                         </span>
-                        <div className="w-14 h-1 rounded-full bg-[#2B2B2B] overflow-hidden">
+                        <div className="w-14 h-1 rounded-full bg-[#262626] overflow-hidden">
                           <div
                             className={`h-full ${progressBg} rounded-full transition-all duration-300`}
                             style={{ width: `${catPercent}%` }}

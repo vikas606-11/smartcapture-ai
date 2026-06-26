@@ -136,7 +136,7 @@ export const GlobalSearchModal = () => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] px-4">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[12vh] px-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -146,41 +146,41 @@ export const GlobalSearchModal = () => {
           />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -20 }}
+            initial={{ opacity: 0, scale: 0.97, y: -8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+            exit={{ opacity: 0, scale: 0.97, y: -8 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="relative w-full max-w-xl bg-[#171717] border border-[#2B2B2B] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[70vh] z-10"
+            className="relative w-full max-w-xl bg-[#171717] border border-[#262626] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[65vh] z-10"
           >
-            <div className="flex items-center px-4 py-3.5 border-b border-[#2B2B2B]">
-              <Search className="w-5 h-5 text-[#808080] mr-3" />
+            <div className="flex items-center px-4 py-3.5 border-b border-[#262626]">
+              <Search className="w-5 h-5 text-[#737373] mr-3" />
               <input
                 ref={inputRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleInputKeyDown}
-                placeholder="Search all tasks..."
-                className="flex-1 bg-transparent text-white placeholder-[#808080] text-sm focus:outline-none"
+                placeholder="Search all workspace items..."
+                className="flex-1 bg-transparent text-white placeholder-[#737373] text-xs focus:outline-none"
               />
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1 rounded-lg hover:bg-[#2B2B2B] text-[#808080] hover:text-white"
+                className="p-1 rounded-lg hover:bg-[#262626] text-[#737373] hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="px-4 py-2 border-b border-[#2B2B2B] flex flex-wrap gap-2 text-xs bg-[#0F0F0F]/60">
-              <span className="text-[#808080] flex items-center mr-1">Category:</span>
+            <div className="px-4 py-2 border-b border-[#262626] flex flex-wrap gap-2 text-xs bg-[#0F0F0F]/60">
+              <span className="text-[#737373] flex items-center mr-1 text-[10px] uppercase font-bold tracking-wider">Category:</span>
               {categories.slice(0, 5).map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setCategoryFilter(cat)}
-                  className={`px-2 py-0.5 rounded border transition-all ${
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase transition-all ${
                     categoryFilter === cat
-                      ? 'border-[#DC2626] bg-[#DC2626]/10 text-white font-semibold'
-                      : 'border-[#2B2B2B] bg-[#171717] text-[#B3B3B3] hover:text-white'
+                      ? 'border border-[#DC2626] bg-[#DC2626]/10 text-white font-semibold'
+                      : 'border border-[#262626] bg-[#171717] text-[#A3A3A3] hover:text-white'
                   }`}
                 >
                   {cat}
@@ -188,16 +188,16 @@ export const GlobalSearchModal = () => {
               ))}
             </div>
 
-            <div className="px-4 py-2 border-b border-[#2B2B2B] flex flex-wrap gap-2 text-xs bg-[#0F0F0F]/60">
-              <span className="text-[#808080] flex items-center mr-1">Priority:</span>
+            <div className="px-4 py-2 border-b border-[#262626] flex flex-wrap gap-2 text-xs bg-[#0F0F0F]/60">
+              <span className="text-[#737373] flex items-center mr-1 text-[10px] uppercase font-bold tracking-wider">Priority:</span>
               {priorities.map((p) => (
                 <button
                   key={p}
                   onClick={() => setPriorityFilter(p)}
-                  className={`px-2 py-0.5 rounded border transition-all ${
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase transition-all ${
                     priorityFilter === p
-                      ? 'border-[#DC2626] bg-[#DC2626]/10 text-white font-semibold'
-                      : 'border-[#2B2B2B] bg-[#171717] text-[#B3B3B3] hover:text-white'
+                      ? 'border border-[#DC2626] bg-[#DC2626]/10 text-white font-semibold'
+                      : 'border border-[#262626] bg-[#171717] text-[#A3A3A3] hover:text-white'
                   }`}
                 >
                   {p}
@@ -211,15 +211,15 @@ export const GlobalSearchModal = () => {
                   {recentSearches.length > 0 && (
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <h3 className="text-3xs font-extrabold text-[#808080] uppercase tracking-wider">Recent Searches</h3>
-                        <button onClick={handleClearRecent} className="text-4xs text-[#DC2626] hover:underline font-bold uppercase">Clear</button>
+                        <h3 className="text-[10px] font-extrabold text-[#737373] uppercase tracking-wider">Recent Searches</h3>
+                        <button onClick={handleClearRecent} className="text-[10px] text-[#DC2626] hover:underline font-bold uppercase">Clear</button>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {recentSearches.map((s, idx) => (
                           <button
                             key={idx}
                             onClick={() => handleRecentClick(s)}
-                            className="px-2.5 py-1 rounded-xl bg-[#0F0F0F] border border-[#2B2B2B] text-xs text-[#B3B3B3] hover:text-white hover:border-[#808080]/30 transition-all"
+                            className="px-2.5 py-1 rounded-xl bg-[#0F0F0F] border border-[#262626] text-xs text-[#A3A3A3] hover:text-white hover:border-[#737373]/30 transition-all"
                           >
                             {s}
                           </button>
@@ -229,13 +229,13 @@ export const GlobalSearchModal = () => {
                   )}
 
                   <div className="space-y-2">
-                    <h3 className="text-3xs font-extrabold text-[#808080] uppercase tracking-wider">Suggested Searches</h3>
+                    <h3 className="text-[10px] font-extrabold text-[#737373] uppercase tracking-wider">Suggested Searches</h3>
                     <div className="flex flex-wrap gap-2">
                       {['AWS Deployment', 'Cloud Presentation', 'Weekly Report', 'Gym Workout'].map((s, idx) => (
                         <button
                           key={idx}
                           onClick={() => setQuery(s)}
-                          className="px-2.5 py-1 rounded-xl bg-[#0F0F0F] border border-[#2B2B2B] text-xs text-[#B3B3B3] hover:text-white hover:border-[#808080]/30 transition-all"
+                          className="px-2.5 py-1 rounded-xl bg-[#0F0F0F] border border-[#262626] text-xs text-[#A3A3A3] hover:text-white hover:border-[#737373]/30 transition-all"
                         >
                           {s}
                         </button>
@@ -244,7 +244,7 @@ export const GlobalSearchModal = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <h3 className="text-3xs font-extrabold text-[#808080] uppercase tracking-wider">Popular Categories</h3>
+                    <h3 className="text-[10px] font-extrabold text-[#737373] uppercase tracking-wider">Popular Categories</h3>
                     <div className="flex flex-wrap gap-2">
                       {['Work', 'Study', 'Personal', 'Shopping'].map((cat, idx) => (
                         <button
@@ -253,7 +253,7 @@ export const GlobalSearchModal = () => {
                           className={`px-2.5 py-1 rounded-xl border text-xs transition-all ${
                             categoryFilter === cat
                               ? 'border-[#DC2626] bg-[#DC2626]/10 text-white font-semibold'
-                              : 'border-[#2B2B2B] bg-[#0F0F0F] text-[#B3B3B3] hover:text-white hover:border-[#808080]/30'
+                              : 'border-[#262626] bg-[#0F0F0F] text-[#A3A3A3] hover:text-white hover:border-[#737373]/30'
                           }`}
                         >
                           {cat}
@@ -265,17 +265,17 @@ export const GlobalSearchModal = () => {
               )}
 
               <div>
-                <h3 className="text-3xs font-extrabold text-[#808080] uppercase tracking-wider mb-2">
+                <h3 className="text-[10px] font-extrabold text-[#737373] uppercase tracking-wider mb-2">
                   {query ? 'Results' : 'Suggestions'}
                 </h3>
                 
                 {results.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-                    <div className="p-3 rounded-full bg-[#2B2B2B]/20 text-[#808080] mb-3">
+                    <div className="p-3 rounded-full bg-[#262626]/40 text-[#737373] mb-3">
                       <Search className="w-6 h-6" />
                     </div>
                     <p className="text-xs font-semibold text-white">No results found</p>
-                    <p className="text-4xs text-[#808080] mt-1 max-w-[240px]">
+                    <p className="text-[11px] text-[#737373] mt-1 max-w-[240px] leading-relaxed">
                       We couldn't find any tasks matching "{query}". Try checking your spelling or filters.
                     </p>
                   </div>
@@ -285,30 +285,30 @@ export const GlobalSearchModal = () => {
                       <button
                         key={task.id}
                         onClick={() => selectTask(task)}
-                        className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#2B2B2B]/40 border border-transparent hover:border-[#2B2B2B] text-left transition-all group"
+                        className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#262626]/30 border border-transparent hover:border-[#262626] text-left transition-all group"
                       >
                         <div className="flex flex-col min-w-0 pr-4">
                           <span className="text-xs font-semibold text-white group-hover:text-[#DC2626] transition-colors truncate">
                             {highlightMatchText(task.title, query)}
                           </span>
-                          <div className="flex items-center space-x-3 mt-1.5 text-4xs text-[#808080]">
+                          <div className="flex items-center space-x-3 mt-1.5 text-[10px] text-[#737373]">
                             {task.due_date && (
                               <span className="flex items-center">
                                 <Calendar className="w-3 h-3 mr-1" /> {task.due_date}
                               </span>
                             )}
-                            <span className="px-1.5 py-0.25 bg-[#0F0F0F] rounded border border-[#2B2B2B]">
+                            <span className="px-1.5 py-0.25 bg-[#0F0F0F] rounded border border-[#262626]">
                               {task.category}
                             </span>
                             <span className={`px-1.5 py-0.25 rounded font-bold ${
                               task.priority === 'High' ? 'text-[#DC2626] bg-red-950/20' :
-                              task.priority === 'Medium' ? 'text-[#F59E0B] bg-amber-950/20' : 'text-[#808080] bg-[#2B2B2B]/30'
+                              task.priority === 'Medium' ? 'text-[#F59E0B] bg-amber-950/20' : 'text-[#737373] bg-[#262626]/30'
                             }`}>
                               {task.priority}
                             </span>
                           </div>
                         </div>
-                        <span className="text-[#808080] group-hover:text-white opacity-0 group-hover:opacity-100 transition-all flex items-center text-4xs">
+                        <span className="text-[#737373] group-hover:text-white opacity-0 group-hover:opacity-100 transition-all flex items-center text-[10px] uppercase font-bold tracking-wider">
                           Jump to <CornerDownLeft className="w-3 h-3 ml-1" />
                         </span>
                       </button>
@@ -318,7 +318,7 @@ export const GlobalSearchModal = () => {
               </div>
             </div>
 
-            <div className="px-4 py-2 border-t border-[#2B2B2B] bg-[#0F0F0F] text-4xs text-[#808080] flex justify-between">
+            <div className="px-4 py-2 border-t border-[#262626] bg-[#0F0F0F] text-[10px] text-[#737373] flex justify-between font-bold uppercase tracking-wider">
               <span>ESC to close</span>
             </div>
 

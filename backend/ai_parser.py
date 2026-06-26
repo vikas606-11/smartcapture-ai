@@ -4,10 +4,9 @@ import re
 from datetime import datetime
 from functools import lru_cache
 import socket
-import google.generativeai as genai
-import google.api_core.exceptions
 from dotenv import load_dotenv
 from logger import logger
+import services.groq_service as groq_service
 
 # Ensure environment variables are loaded
 load_dotenv()
@@ -50,34 +49,15 @@ class TaskValidationError(Exception):
 
 def handle_gemini_exceptions(func):
     """
-    Decorator to map standard Google Generative AI exceptions and network issues
-    into user-friendly custom exceptions.
+    Decorator to wrap functions and catch exceptions, raising custom exceptions
+    for backward compatibility with the routes/controllers.
     """
     def wrapper(*args, **kwargs):
-        api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key or api_key == "your_gemini_api_key_here" or not api_key.strip():
-            raise GeminiApiKeyError("Gemini API key is not configured. Please add your GEMINI_API_KEY in the backend/.env file.")
-            
         try:
             return func(*args, **kwargs)
-        except google.api_core.exceptions.DeadlineExceeded as e:
-            logger.error(f"Gemini API request timed out: {e}")
-            raise GeminiTimeoutError("Gemini API request timed out. Please check your network connection and try again.") from e
-        except google.api_core.exceptions.ResourceExhausted as e:
-            logger.error(f"Gemini API quota exceeded: {e}")
-            raise GeminiQuotaError("Gemini API quota exceeded. Please check your billing limits or try again in a few minutes.") from e
-        except (google.api_core.exceptions.InvalidArgument, google.api_core.exceptions.PermissionDenied) as e:
-            logger.error(f"Gemini API permission/key error: {e}")
-            raise GeminiApiKeyError("Invalid API key or invalid request parameters provided to Gemini API.") from e
-        except (google.api_core.exceptions.GoogleAPICallError, google.api_core.exceptions.ServiceUnavailable) as e:
-            logger.error(f"Gemini API service unavailable: {e}")
-            raise GeminiConnectionError("Gemini API service is currently unavailable. Please try again later.") from e
-        except (socket.gaierror, socket.timeout) as e:
-            logger.error(f"Gemini API network connection error: {e}")
-            raise GeminiConnectionError("Network error. Unable to establish connection to Gemini API server.") from e
         except Exception as e:
-            logger.error(f"Unexpected error in Gemini service call: {e}")
-            raise GeminiError(f"An unexpected error occurred while communicating with Gemini API: {str(e)}") from e
+            logger.error(f"Error occurred during NLP processing: {e}")
+            raise GeminiError(f"An error occurred during local NLP processing: {str(e)}") from e
     return wrapper
 
 # =====================================================================
@@ -86,18 +66,9 @@ def handle_gemini_exceptions(func):
 
 def get_gemini_client():
     """
-    Dynamically configures and returns whether the Gemini client is configured.
-    Loads API key from environment variables.
+    Offline client status indicator. Always returns True as local parsing is operational.
     """
-    api_key = os.getenv("GEMINI_API_KEY")
-    if api_key and api_key != "your_gemini_api_key_here" and api_key.strip():
-        try:
-            genai.configure(api_key=api_key)
-            return True
-        except Exception as e:
-            logger.error(f"Error configuring Gemini API: {e}")
-            return False
-    return False
+    return True
 
 def validate_parsed_response(parsed_data):
     """
@@ -189,24 +160,9 @@ def get_extraction_system_prompt(current_time_str):
 @handle_gemini_exceptions
 def _parse_natural_language_api_call(text, current_time_str, feedback_prompt=None):
     """
-    Performs raw content generation from the Gemini API.
+    Performs raw content generation from the Groq API.
     """
-    if not get_gemini_client():
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    
-    if feedback_prompt:
-        prompt = feedback_prompt
-    else:
-        system_prompt = get_extraction_system_prompt(current_time_str)
-        prompt = f"{system_prompt}\n\nText to extract: {text}"
-        
-    response = model.generate_content(
-        prompt,
-        generation_config={"response_mime_type": "application/json"}
-    )
-    return response.text.strip()
+    return groq_service.extract_tasks_from_text(text, current_time_str, feedback_prompt)
 
 @lru_cache(maxsize=128)
 def _get_cached_parsed_data(text, current_date_str, current_time_str):
@@ -279,18 +235,10 @@ def parse_natural_language(text):
 
 @handle_gemini_exceptions
 def _generate_daily_summary_api_call(tasks_json):
-    if not get_gemini_client():
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        
-    prompt = (
-        "You are a productivity coach AI. Given this list of tasks, "
-        "generate a friendly, motivating daily summary in 3-4 sentences. "
-        "Mention total pending, completed, and top 3 priorities. "
-        f"Tasks: {tasks_json}"
-    )
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    response = model.generate_content(prompt)
-    return response.text.strip()
+    """
+    Performs raw content generation from the Groq API.
+    """
+    return groq_service.generate_daily_summary(tasks_json)
 
 def generate_daily_summary(tasks):
     """
@@ -312,23 +260,10 @@ def generate_daily_summary(tasks):
 @lru_cache(maxsize=256)
 @handle_gemini_exceptions
 def _cached_generate_tags_api_call(title):
-    if not get_gemini_client():
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        
-    prompt = (
-        "Generate 3-5 relevant single-word lowercase tags for this task title. "
-        "Return ONLY a JSON array like: ['tag1', 'tag2', 'tag3'] "
-        "No explanation, just the array. "
-        f"Task: {title}"
-    )
-    
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    response = model.generate_content(
-        prompt,
-        generation_config={"response_mime_type": "application/json"}
-    )
-    text_response = response.text.strip()
-    
+    """
+    Performs raw content generation from the Groq API.
+    """
+    text_response = groq_service.generate_tags(title)
     tags = json.loads(text_response)
     if isinstance(tags, list):
         return [t.strip().replace('#', '').lower() for t in tags if isinstance(t, str)]
@@ -478,29 +413,10 @@ def fallback_generate_tags(title):
 @lru_cache(maxsize=128)
 @handle_gemini_exceptions
 def _cached_semantic_search(query, tasks_json):
-    if not get_gemini_client():
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        
-    prompt = (
-        f"You are a semantic search AI. The user is searching for: '{query}'.\n\n"
-        f"Here is a JSON list of tasks in the database:\n"
-        f"{tasks_json}\n\n"
-        f"Identify all tasks that are semantically related, relevant, or matching the intent of the search query.\n"
-        f"For example, searching for 'cloud' should match tasks containing 'AWS', 'Google Cloud', 'deployment', etc.\n"
-        f"Return ONLY a JSON object containing a list of matching task IDs, in the format:\n"
-        f"{{\n"
-        f"  \"matches\": [1, 4, 8]\n"
-        f"}}\n"
-        f"If no tasks are related, return an empty matches list. Provide NO explanation, just raw valid JSON."
-    )
-    
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    response = model.generate_content(
-        prompt,
-        generation_config={"response_mime_type": "application/json"}
-    )
-    text_response = response.text.strip()
-    
+    """
+    Performs raw content generation from the Groq API.
+    """
+    text_response = groq_service.semantic_search_tasks(query, tasks_json)
     data = json.loads(text_response)
     if isinstance(data, dict) and 'matches' in data:
         return tuple(data['matches'])

@@ -32,22 +32,22 @@ export const SearchBar = ({ onChange }) => {
   ];
 
   return (
-    <div className="flex flex-col lg:flex-row gap-3.5 p-4 bg-[#171717] border border-[#2B2B2B] rounded-2xl shadow-lg transition-all duration-300">
+    <div className="flex flex-col lg:flex-row gap-3.5 p-4 bg-[#171717] border border-[#262626] rounded-2xl shadow-lg transition-all duration-300">
       
       {/* Search text field */}
       <div className="relative flex-1">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[#808080]" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[#737373]" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Filter by keywords or tags..."
-          className="w-full pl-11 pr-10 py-2.5 rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-white placeholder-[#808080] text-xs focus:outline-none focus:border-[#DC2626] transition-all duration-200"
+          className="w-full pl-11 pr-10 py-2.5 rounded-xl border border-[#262626] bg-[#0F0F0F] text-white placeholder-[#737373] text-xs focus:outline-none focus:border-[#DC2626] transition-all duration-200"
         />
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-[#2B2B2B] text-[#808080] hover:text-white"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-[#262626] text-[#737373] hover:text-white"
           >
             <X className="w-4 h-4" />
           </button>
@@ -59,7 +59,7 @@ export const SearchBar = ({ onChange }) => {
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="w-full px-4 py-2.5 rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-white text-xs focus:outline-none focus:border-[#DC2626] cursor-pointer"
+          className="w-full px-4 py-2.5 rounded-xl border border-[#262626] bg-[#0F0F0F] text-white text-xs focus:outline-none focus:border-[#DC2626] cursor-pointer"
         >
           {categories.map((cat) => (
             <option key={cat} value={cat}>
@@ -74,7 +74,7 @@ export const SearchBar = ({ onChange }) => {
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="w-full px-4 py-2.5 rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-white text-xs focus:outline-none focus:border-[#DC2626] cursor-pointer"
+          className="w-full px-4 py-2.5 rounded-xl border border-[#262626] bg-[#0F0F0F] text-white text-xs focus:outline-none focus:border-[#DC2626] cursor-pointer"
         >
           {statuses.map((stat) => (
             <option key={stat.value} value={stat.value}>
@@ -89,7 +89,7 @@ export const SearchBar = ({ onChange }) => {
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value)}
-          className="w-full px-4 py-2.5 rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-white text-xs focus:outline-none focus:border-[#DC2626] cursor-pointer"
+          className="w-full px-4 py-2.5 rounded-xl border border-[#262626] bg-[#0F0F0F] text-white text-xs focus:outline-none focus:border-[#DC2626] cursor-pointer"
         >
           <option value="All">All Priorities</option>
           <option value="High">High Priority</option>
@@ -103,7 +103,7 @@ export const SearchBar = ({ onChange }) => {
         <select
           value={timeframe}
           onChange={(e) => setTimeframe(e.target.value)}
-          className="w-full px-4 py-2.5 rounded-xl border border-[#2B2B2B] bg-[#0F0F0F] text-white text-xs focus:outline-none focus:border-[#DC2626] cursor-pointer"
+          className="w-full px-4 py-2.5 rounded-xl border border-[#262626] bg-[#0F0F0F] text-white text-xs focus:outline-none focus:border-[#DC2626] cursor-pointer"
         >
           <option value="All">All Timeframes</option>
           <option value="overdue">Overdue</option>
@@ -116,7 +116,7 @@ export const SearchBar = ({ onChange }) => {
       {(search || category !== 'All' || status !== 'All' || priority !== 'All' || timeframe !== 'All') && (
         <button
           onClick={handleClear}
-          className="px-4 py-2.5 rounded-xl border border-dashed border-[#2B2B2B] hover:border-[#808080]/30 text-[#808080] hover:text-white bg-[#0F0F0F] transition-all font-semibold text-xs flex items-center justify-center gap-1.5"
+          className="px-4 py-2.5 rounded-xl border border-dashed border-[#262626] hover:border-[#737373]/30 text-[#737373] hover:text-white bg-[#0F0F0F] transition-all font-semibold text-xs flex items-center justify-center gap-1.5"
         >
           <X className="w-4 h-4 flex-shrink-0" />
           <span>Reset</span>

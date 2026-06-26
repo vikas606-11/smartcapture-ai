@@ -7,7 +7,6 @@ export const VoiceInput = ({ onTranscript, onError }) => {
   const recognitionRef = useRef(null);
 
   useEffect(() => {
-    // Check for web speech recognition support
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       setSupported(false);
@@ -79,10 +78,10 @@ export const VoiceInput = ({ onTranscript, onError }) => {
       <button
         type="button"
         onClick={handleToggle}
-        className={`p-3 rounded-xl border flex items-center justify-center transition-all duration-300 relative focus:outline-none focus:ring-2 focus:ring-brand-500/80 ${
+        className={`p-3 rounded-xl border flex items-center justify-center transition-all duration-300 relative focus:outline-none ${
           isListening
-            ? 'bg-rose-500 border-rose-500 text-white animate-pulse'
-            : 'bg-slate-100 hover:bg-slate-200/85 border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 dark:border-slate-700 text-slate-655 dark:text-slate-350'
+            ? 'bg-[#DC2626] border-[#DC2626] text-white animate-pulse'
+            : 'bg-[#0F0F0F] hover:bg-[#262626]/30 border-[#262626] text-[#A3A3A3] hover:text-white'
         }`}
         title={isListening ? 'Stop Recording' : 'Record Voice'}
       >
@@ -92,15 +91,14 @@ export const VoiceInput = ({ onTranscript, onError }) => {
           <FiMic className="w-5 h-5" />
         )}
         
-        {/* Pulsing red animation outer ring */}
         {isListening && (
-          <span className="absolute inset-0 rounded-xl bg-rose-500/40 animate-ping -z-0" />
+          <span className="absolute inset-0 rounded-xl bg-red-600/40 animate-ping -z-0" />
         )}
       </button>
 
       {isListening && (
-        <span className="text-xs font-bold text-rose-500 dark:text-rose-400 animate-pulse tracking-wide uppercase">
-          Listening...
+        <span className="text-[10px] font-extrabold text-[#DC2626] animate-pulse tracking-widest uppercase">
+          Listening
         </span>
       )}
     </div>
