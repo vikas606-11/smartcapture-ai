@@ -5,8 +5,8 @@ import ai_parser
 import ai_coach
 from logger import logger
 
-# Create routes blueprint with strict_slashes disabled to prevent trailing slash redirects
-routes_bp = Blueprint('routes', __name__, strict_slashes=False)
+# Create routes blueprint
+routes_bp = Blueprint('routes', __name__)
 
 @routes_bp.route('/capture', methods=['POST'])
 def capture():

@@ -47,6 +47,9 @@ def create_app():
     origins = [orig.strip() for orig in frontend_url.split(",") if orig.strip()]
     CORS(app, resources={r"/*": {"origins": origins}})
     
+    # Disable strict slashes globally
+    app.url_map.strict_slashes = False
+    
     # Register blueprints/routes
     app.register_blueprint(routes_bp)
     
